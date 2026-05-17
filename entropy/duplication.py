@@ -47,9 +47,7 @@ def jaccard_similarity(a: set, b: set) -> float:
     return intersection / union if union > 0 else 0.0
 
 
-def find_duplicates(
-    files: list[dict], repo_path: str, threshold: float = 0.6
-) -> list[dict]:
+def find_duplicates(files: list[dict], repo_path: str, threshold: float = 0.6) -> list[dict]:
     """Find duplicate paragraphs across intent-bearing files.
 
     Args:
@@ -72,9 +70,7 @@ def find_duplicates(
             continue
         paragraphs = extract_paragraphs(text)
         if paragraphs:
-            file_paragraphs[f["path"]] = [
-                (p, shingle(p)) for p in paragraphs
-            ]
+            file_paragraphs[f["path"]] = [(p, shingle(p)) for p in paragraphs]
 
     # Compare all file pairs
     duplicates = []
@@ -101,9 +97,7 @@ def find_duplicates(
     return duplicates
 
 
-def compute_duplication_score(
-    files: list[dict], repo_path: str, threshold: float = 0.6
-) -> dict:
+def compute_duplication_score(files: list[dict], repo_path: str, threshold: float = 0.6) -> dict:
     """Compute duplication score for a repository.
 
     Returns JSON-serializable dict with score and duplicate pairs.

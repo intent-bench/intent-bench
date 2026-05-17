@@ -1,11 +1,20 @@
-.PHONY: setup test validate run-all analyze charts clean icon
+.PHONY: setup test validate run-all analyze charts clean icon lint
 
 SHELL := /bin/bash
 
 # Environment setup
 setup: icon
 	pip3 install -r analysis/requirements.txt
+	pip3 install pre-commit black flake8 mypy types-PyYAML
+	pre-commit install
 	@echo "Setup complete."
+
+# Lint all code
+lint:
+	python3 -m black --check --diff .
+	python3 -m flake8 .
+	python3 -m mypy lib/parse_transcript.py entropy/agent_entropy.py analysis/compare.py analysis/plot.py
+	shellcheck -e SC1091 -e SC2034 bench.sh agents/*.sh treatments/*.sh lib/csv.sh scripts/*.sh tests/*.sh
 
 # Validate all experiments
 validate:

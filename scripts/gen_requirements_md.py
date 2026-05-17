@@ -52,9 +52,13 @@ def topological_sort(rows: list[dict]) -> list[dict]:
     for rid, deg in in_degree.items():
         if deg == 0:
             queue.append(rid)
-    queue.sort(key=lambda rid: (int(id_to_row[rid].get("phase", "0") or "0"),
-                                id_to_row[rid].get("priority", "Z"),
-                                rid))
+    queue.sort(
+        key=lambda rid: (
+            int(id_to_row[rid].get("phase", "0") or "0"),
+            id_to_row[rid].get("priority", "Z"),
+            rid,
+        )
+    )
 
     result = []
     while queue:
@@ -64,9 +68,13 @@ def topological_sort(rows: list[dict]) -> list[dict]:
             in_degree[neighbor] -= 1
             if in_degree[neighbor] == 0:
                 queue.append(neighbor)
-        queue.sort(key=lambda rid: (int(id_to_row[rid].get("phase", "0") or "0"),
-                                    id_to_row[rid].get("priority", "Z"),
-                                    rid))
+        queue.sort(
+            key=lambda rid: (
+                int(id_to_row[rid].get("phase", "0") or "0"),
+                id_to_row[rid].get("priority", "Z"),
+                rid,
+            )
+        )
 
     # Append any remaining (cycles or disconnected)
     seen = {r["req_id"] for r in result}
@@ -197,8 +205,10 @@ def generate_markdown(rows: list[dict], req_dir: Path) -> str:
 
 def main():
     if len(sys.argv) != 4:
-        print("Usage: gen_requirements_md.py <rtm.csv> <requirements_dir> <output.md>",
-              file=sys.stderr)
+        print(
+            "Usage: gen_requirements_md.py <rtm.csv> <requirements_dir> <output.md>",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     csv_path = sys.argv[1]

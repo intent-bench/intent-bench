@@ -4,18 +4,17 @@
 Publication-quality charts generated from experiment results.
 """
 
-import hashlib
-import json
 import sys
 from pathlib import Path
 
 import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
 
-from style import COLORS, DPI, apply_style
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
+import pandas as pd  # noqa: E402
+import numpy as np  # noqa: E402
+
+from style import COLORS, DPI, apply_style  # noqa: E402
 
 
 def load_data(ledger_path: str = "results/summary.csv") -> pd.DataFrame:
@@ -45,13 +44,25 @@ def chart_token_comparison(df: pd.DataFrame, output_dir: Path):
 
         color = COLORS[condition]
         offset = -width / 2 + i * width
-        ax.bar(x + offset, means, width, yerr=cis, label=condition.capitalize(),
-               color=color, capsize=4, alpha=0.85)
+        ax.bar(
+            x + offset,
+            means,
+            width,
+            yerr=cis,
+            label=condition.capitalize(),
+            color=color,
+            capsize=4,
+            alpha=0.85,
+        )
 
     ax.set_xticks(x)
     ax.set_xticklabels(experiments, rotation=15)
-    apply_style(ax, "Token Consumption: Control vs Treatment",
-                "Experiment", "Total Tokens (PASS only)")
+    apply_style(
+        ax,
+        "Token Consumption: Control vs Treatment",
+        "Experiment",
+        "Total Tokens (PASS only)",
+    )
     ax.legend()
     fig.tight_layout()
 
@@ -70,8 +81,7 @@ def chart_token_breakdown(df: pd.DataFrame, output_dir: Path):
         print("  [SKIP] token_breakdown -- no PASS data")
         return
 
-    fig, axes = plt.subplots(1, len(experiments), figsize=(6 * len(experiments), 5),
-                             squeeze=False)
+    fig, axes = plt.subplots(1, len(experiments), figsize=(6 * len(experiments), 5), squeeze=False)
 
     for idx, exp in enumerate(experiments):
         ax = axes[0, idx]
@@ -91,8 +101,14 @@ def chart_token_breakdown(df: pd.DataFrame, output_dir: Path):
                 (execution, "Execution", COLORS["execution"]),
             ]:
                 if val > 0:
-                    ax.bar(condition.capitalize(), val, bottom=bottom,
-                           label=label if i == 0 else "", color=color, alpha=0.85)
+                    ax.bar(
+                        condition.capitalize(),
+                        val,
+                        bottom=bottom,
+                        label=label if i == 0 else "",
+                        color=color,
+                        alpha=0.85,
+                    )
                     bottom += val
 
         apply_style(ax, f"Token Breakdown: {exp}", "", "Tokens")
@@ -130,8 +146,14 @@ def chart_completion_rate(df: pd.DataFrame, output_dir: Path):
 
         color = COLORS[condition]
         offset = -width / 2 + i * width
-        ax.bar(x + offset, [r * 100 for r in rates], width,
-               label=condition.capitalize(), color=color, alpha=0.85)
+        ax.bar(
+            x + offset,
+            [r * 100 for r in rates],
+            width,
+            label=condition.capitalize(),
+            color=color,
+            alpha=0.85,
+        )
 
     ax.set_xticks(x)
     ax.set_xticklabels(experiments, rotation=15)
@@ -157,8 +179,7 @@ def chart_entropy_variance(df: pd.DataFrame, output_dir: Path):
         return
 
     experiments = sorted(ent_df["experiment"].unique())
-    fig, axes = plt.subplots(1, len(experiments), figsize=(5 * len(experiments), 5),
-                             squeeze=False)
+    fig, axes = plt.subplots(1, len(experiments), figsize=(5 * len(experiments), 5), squeeze=False)
 
     for i, exp in enumerate(experiments):
         ax = axes[0][i]
@@ -167,33 +188,53 @@ def chart_entropy_variance(df: pd.DataFrame, output_dir: Path):
         ctrl_vals = exp_df[exp_df["condition"] == "control"]["knowledge_entropy"].values
         treat_vals = exp_df[exp_df["condition"] == "treatment"]["knowledge_entropy"].values
 
-        bp = ax.boxplot([ctrl_vals, treat_vals],
-                        tick_labels=["Control", "Treatment"],
-                        patch_artist=True, widths=0.5)
+        bp = ax.boxplot(
+            [ctrl_vals, treat_vals],
+            tick_labels=["Control", "Treatment"],
+            patch_artist=True,
+            widths=0.5,
+        )
 
         bp["boxes"][0].set_facecolor(COLORS["control"])
         bp["boxes"][0].set_alpha(0.7)
         bp["boxes"][1].set_facecolor(COLORS["treatment"])
         bp["boxes"][1].set_alpha(0.7)
 
-        for j, (vals, color) in enumerate([(ctrl_vals, COLORS["control"]),
-                                           (treat_vals, COLORS["treatment"])]):
+        for j, (vals, color) in enumerate([(ctrl_vals, COLORS["control"]), (treat_vals, COLORS["treatment"])]):
             x_jitter = np.random.normal(j + 1, 0.04, size=len(vals))
-            ax.scatter(x_jitter, vals, color=color, alpha=0.6, s=40,
-                       edgecolors="black", linewidths=0.5, zorder=3)
+            ax.scatter(
+                x_jitter,
+                vals,
+                color=color,
+                alpha=0.6,
+                s=40,
+                edgecolors="black",
+                linewidths=0.5,
+                zorder=3,
+            )
 
         for j, vals in enumerate([ctrl_vals, treat_vals]):
             if len(vals) > 1 and np.mean(vals) > 0:
                 cv = np.std(vals, ddof=1) / np.mean(vals)
-                ax.text(j + 1, ax.get_ylim()[1] * 0.95, f"CV={cv:.2f}",
-                        ha="center", fontsize=9, style="italic")
+                ax.text(
+                    j + 1,
+                    ax.get_ylim()[1] * 0.95,
+                    f"CV={cv:.2f}",
+                    ha="center",
+                    fontsize=9,
+                    style="italic",
+                )
 
         ax.set_title(exp, fontsize=12, fontweight="bold")
         ax.set_ylabel("Knowledge Entropy Score")
         ax.set_ylim(0, max(ent_df["knowledge_entropy"].max() * 1.2, 6))
 
-    fig.suptitle("Entropy Variance: Intent Layer Reduces Outcome Variability",
-                 fontsize=14, fontweight="bold", y=1.02)
+    fig.suptitle(
+        "Entropy Variance: Intent Layer Reduces Outcome Variability",
+        fontsize=14,
+        fontweight="bold",
+        y=1.02,
+    )
     fig.tight_layout()
 
     for fmt in ["png", "svg"]:
@@ -212,9 +253,12 @@ def chart_tool_distribution(df: pd.DataFrame, output_dir: Path):
 
     fig, ax = plt.subplots(figsize=(8, 5))
 
-    ax.bar(["Intent Tools", "Other Tools"],
-           [treatment["tool_calls_intent"].mean(), treatment["tool_calls_other"].mean()],
-           color=[COLORS["intent"], COLORS["neutral"]], alpha=0.85)
+    ax.bar(
+        ["Intent Tools", "Other Tools"],
+        [treatment["tool_calls_intent"].mean(), treatment["tool_calls_other"].mean()],
+        color=[COLORS["intent"], COLORS["neutral"]],
+        alpha=0.85,
+    )
 
     apply_style(ax, "Tool Call Distribution (Treatment)", "", "Mean Tool Calls per Session")
     fig.tight_layout()

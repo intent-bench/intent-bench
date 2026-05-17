@@ -14,9 +14,10 @@ pluggable treatment layer.
 ## Quick Commands
 
 ```bash
-make setup        # Install Python dependencies
-make validate     # Validate all experiment configs
+make setup        # Install dependencies, pre-commit hooks, build icon
+make lint         # Run black, flake8, mypy, shellcheck
 make test         # Run harness and entropy tests
+make validate     # Validate all experiment configs
 make gen-fixtures # Generate manual-spec fixtures from RTMX fixtures
 make analyze      # Run statistical analysis on results
 make charts       # Generate visualizations

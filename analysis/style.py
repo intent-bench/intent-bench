@@ -6,12 +6,12 @@ Publication-quality charts with colorblind-safe palette (IBM Design Library).
 
 # Colorblind-safe palette
 COLORS = {
-    "control": "#648FFF",      # blue
-    "treatment": "#DC267F",    # magenta
-    "intent": "#FE6100",       # orange (intent layer tools)
-    "planning": "#785EF0",     # purple
-    "execution": "#FFB000",    # gold
-    "neutral": "#808080",      # gray
+    "control": "#648FFF",  # blue
+    "treatment": "#DC267F",  # magenta
+    "intent": "#FE6100",  # orange (intent layer tools)
+    "planning": "#785EF0",  # purple
+    "execution": "#FFB000",  # gold
+    "neutral": "#808080",  # gray
 }
 
 FONT_FAMILY = "sans-serif"
@@ -24,8 +24,13 @@ DPI = 300
 def apply_style(ax, title: str = "", xlabel: str = "", ylabel: str = ""):
     """Apply consistent styling to a matplotlib axis."""
     if title:
-        ax.set_title(title, fontsize=FONT_SIZE_TITLE, fontfamily=FONT_FAMILY,
-                     fontweight="bold", pad=12)
+        ax.set_title(
+            title,
+            fontsize=FONT_SIZE_TITLE,
+            fontfamily=FONT_FAMILY,
+            fontweight="bold",
+            pad=12,
+        )
     if xlabel:
         ax.set_xlabel(xlabel, fontsize=FONT_SIZE_LABEL, fontfamily=FONT_FAMILY)
     if ylabel:

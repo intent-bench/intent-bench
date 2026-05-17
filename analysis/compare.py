@@ -19,9 +19,17 @@ def load_ledger(path: str = "results/summary.csv") -> pd.DataFrame:
     """Load and validate the experiment ledger."""
     df = pd.read_csv(path)
     required = [
-        "experiment", "condition", "total_tokens", "outcome",
-        "input_tokens", "output_tokens", "tool_tokens",
-        "planning_tokens", "execution_tokens", "turns", "backtracks",
+        "experiment",
+        "condition",
+        "total_tokens",
+        "outcome",
+        "input_tokens",
+        "output_tokens",
+        "tool_tokens",
+        "planning_tokens",
+        "execution_tokens",
+        "turns",
+        "backtracks",
     ]
     missing = [c for c in required if c not in df.columns]
     if missing:
@@ -49,8 +57,7 @@ def compute_stats(series: pd.Series) -> dict:
     }
 
 
-def bootstrap_ci(a: pd.Series, b: pd.Series, n_boot: int = 10000,
-                 alpha: float = 0.05) -> dict:
+def bootstrap_ci(a: pd.Series, b: pd.Series, n_boot: int = 10000, alpha: float = 0.05) -> dict:
     """Bootstrap 95% CI for the ratio of means (a/b)."""
     import numpy as np
 
@@ -161,23 +168,17 @@ def analyze_experiment(df: pd.DataFrame, experiment: str) -> dict:
             total_turns = cond_pass["turns"].sum()
             total_backtracks = cond_pass["backtracks"].sum()
             if total_turns > 0:
-                result[f"backtrack_rate_{cond}"] = round(
-                    float(total_backtracks / total_turns), 3
-                )
+                result[f"backtrack_rate_{cond}"] = round(float(total_backtracks / total_turns), 3)
 
     # Entropy correlation
     if "knowledge_entropy" in exp_pass.columns:
-        entropy_data = exp_pass[
-            exp_pass["knowledge_entropy"].notna()
-            & (exp_pass["knowledge_entropy"] != "")
-        ].copy()
+        entropy_data = exp_pass[exp_pass["knowledge_entropy"].notna() & (exp_pass["knowledge_entropy"] != "")].copy()
         if len(entropy_data) >= 3:
-            entropy_vals = pd.to_numeric(
-                entropy_data["knowledge_entropy"], errors="coerce"
-            ).dropna()
+            entropy_vals = pd.to_numeric(entropy_data["knowledge_entropy"], errors="coerce").dropna()
             token_vals = entropy_data.loc[entropy_vals.index, "total_tokens"]
             if len(entropy_vals) >= 3:
                 from scipy.stats import spearmanr
+
                 corr, p_val = spearmanr(entropy_vals, token_vals)
                 result["entropy_correlation"] = {
                     "spearman_r": round(float(corr), 3),
@@ -192,16 +193,14 @@ def analyze_experiment(df: pd.DataFrame, experiment: str) -> dict:
         result["variance"] = {
             "control_cv": round(float(ctrl_cv), 3),
             "treatment_cv": round(float(treat_cv), 3),
-            "variance_reduction": round(float(1 - treat_cv / ctrl_cv), 3) if ctrl_cv > 0 else 0,
+            "variance_reduction": (round(float(1 - treat_cv / ctrl_cv), 3) if ctrl_cv > 0 else 0),
         }
 
     # Warnings
     for cond in ["control", "treatment"]:
         n = result["runs"][cond]
         if n < 5:
-            result.setdefault("warnings", []).append(
-                f"Insufficient runs for {cond}: {n} < 5"
-            )
+            result.setdefault("warnings", []).append(f"Insufficient runs for {cond}: {n} < 5")
 
     return result
 
@@ -215,7 +214,10 @@ def print_report(results: list[dict]):
         print()
 
         print(f"  Runs:            control={r['runs']['control']}, treatment={r['runs']['treatment']}")
-        print(f"  Completion rate: control={r['completion_rate']['control']:.0%}, treatment={r['completion_rate']['treatment']:.0%}")
+        print(
+            f"  Completion rate: control={r['completion_rate']['control']:.0%},"
+            f" treatment={r['completion_rate']['treatment']:.0%}"
+        )
 
         if "completion_significance" in r:
             cs = r["completion_significance"]

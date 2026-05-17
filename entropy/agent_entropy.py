@@ -18,9 +18,7 @@ Scale: 0.0 (perfectly efficient) to 10.0 (maximum waste/entropy).
 
 import json
 import os
-import sys
 from pathlib import Path
-
 
 # Dimension weights (sum to 1.0)
 WEIGHTS = {
@@ -97,10 +95,12 @@ def extract_tool_calls(messages: list[dict]) -> list[dict]:
                 continue
             if block.get("type") == "tool_use":
                 tool_input = block.get("input", {})
-                calls.append({
-                    "name": block.get("name", ""),
-                    "input": tool_input if isinstance(tool_input, dict) else {},
-                })
+                calls.append(
+                    {
+                        "name": block.get("name", ""),
+                        "input": tool_input if isinstance(tool_input, dict) else {},
+                    }
+                )
 
     return calls
 
@@ -113,8 +113,16 @@ def score_productivity(tool_calls: list[dict], workdir: str) -> tuple[float, dic
 
     existing_files = set()
     if workdir and os.path.isdir(workdir):
-        skip_dirs = {"node_modules", ".venv", "venv", "vendor", "target",
-                     "__pycache__", ".git", ".pytest_cache"}
+        skip_dirs = {
+            "node_modules",
+            ".venv",
+            "venv",
+            "vendor",
+            "target",
+            "__pycache__",
+            ".git",
+            ".pytest_cache",
+        }
         for root, _, files in os.walk(workdir):
             rel_root = os.path.relpath(root, workdir)
             if any(part in skip_dirs for part in Path(rel_root).parts):
@@ -201,23 +209,44 @@ def score_conventionality(workdir: str) -> tuple[int, dict]:
 
     checks = {}
 
-    manifests = ["package.json", "go.mod", "Cargo.toml", "pyproject.toml",
-                 "requirements.txt", "Gemfile", "pom.xml", "build.gradle"]
+    manifests = [
+        "package.json",
+        "go.mod",
+        "Cargo.toml",
+        "pyproject.toml",
+        "requirements.txt",
+        "Gemfile",
+        "pom.xml",
+        "build.gradle",
+    ]
     has_manifest = any(os.path.isfile(os.path.join(workdir, m)) for m in manifests)
     checks["project_manifest"] = has_manifest
 
-    has_src = os.path.isdir(os.path.join(workdir, "src")) or \
-              os.path.isdir(os.path.join(workdir, "lib")) or \
-              os.path.isdir(os.path.join(workdir, "app")) or \
-              os.path.isdir(os.path.join(workdir, "internal"))
-    has_test = os.path.isdir(os.path.join(workdir, "tests")) or \
-               os.path.isdir(os.path.join(workdir, "test")) or \
-               os.path.isdir(os.path.join(workdir, "__tests__")) or \
-               os.path.isdir(os.path.join(workdir, "spec"))
+    has_src = (
+        os.path.isdir(os.path.join(workdir, "src"))
+        or os.path.isdir(os.path.join(workdir, "lib"))
+        or os.path.isdir(os.path.join(workdir, "app"))
+        or os.path.isdir(os.path.join(workdir, "internal"))
+    )
+    has_test = (
+        os.path.isdir(os.path.join(workdir, "tests"))
+        or os.path.isdir(os.path.join(workdir, "test"))
+        or os.path.isdir(os.path.join(workdir, "__tests__"))
+        or os.path.isdir(os.path.join(workdir, "spec"))
+    )
     checks["separated_dirs"] = has_src and has_test
 
-    entry_points = ["main.go", "main.py", "index.js", "index.ts", "app.py",
-                    "server.js", "server.ts", "Makefile", "Dockerfile"]
+    entry_points = [
+        "main.go",
+        "main.py",
+        "index.js",
+        "index.ts",
+        "app.py",
+        "server.js",
+        "server.ts",
+        "Makefile",
+        "Dockerfile",
+    ]
     has_entry = any(os.path.isfile(os.path.join(workdir, e)) for e in entry_points)
     if not has_entry and has_src:
         for src_dir in ["src", "lib", "app"]:
@@ -225,26 +254,29 @@ def score_conventionality(workdir: str) -> tuple[int, dict]:
             if os.path.isdir(src_path):
                 has_entry = any(
                     os.path.isfile(os.path.join(src_path, e))
-                    for e in ["index.js", "index.ts", "main.go", "main.py",
-                              "app.py", "server.js", "server.ts"]
+                    for e in [
+                        "index.js",
+                        "index.ts",
+                        "main.go",
+                        "main.py",
+                        "app.py",
+                        "server.js",
+                        "server.ts",
+                    ]
                 )
                 if has_entry:
                     break
     checks["entry_point"] = has_entry
 
     docs = ["README.md", "README", "README.txt", "CLAUDE.md", "docs"]
-    has_docs = any(
-        os.path.isfile(os.path.join(workdir, d)) or os.path.isdir(os.path.join(workdir, d))
-        for d in docs
-    )
+    has_docs = any(os.path.isfile(os.path.join(workdir, d)) or os.path.isdir(os.path.join(workdir, d)) for d in docs)
     checks["documentation"] = has_docs
 
     met = sum(1 for v in checks.values() if v)
     return met, {"checks": checks, "met": met, "total": 4}
 
 
-def score_test_coherence(tests_passed: int, tests_failed: int,
-                         tests_total: int, outcome: str) -> tuple[float, dict]:
+def score_test_coherence(tests_passed: int, tests_failed: int, tests_total: int, outcome: str) -> tuple[float, dict]:
     """Score test coherence: do the tests the agent wrote actually pass?"""
     if tests_total == 0:
         if outcome == "PASS":
@@ -285,9 +317,14 @@ def normalize(value: float, dim: str) -> float:
         return (value - lo) / (hi - lo)
 
 
-def compute_agent_entropy(transcript_path: str, workdir: str,
-                          tests_passed: int = 0, tests_failed: int = 0,
-                          tests_total: int = 0, outcome: str = "ERROR") -> dict:
+def compute_agent_entropy(
+    transcript_path: str,
+    workdir: str,
+    tests_passed: int = 0,
+    tests_failed: int = 0,
+    tests_total: int = 0,
+    outcome: str = "ERROR",
+) -> dict:
     """Compute composite agent entropy score."""
     messages = load_transcript(transcript_path) if transcript_path else []
     tool_calls = extract_tool_calls(messages)
@@ -295,9 +332,7 @@ def compute_agent_entropy(transcript_path: str, workdir: str,
     prod_raw, prod_detail = score_productivity(tool_calls, workdir)
     rework_raw, rework_detail = score_rework(tool_calls)
     conv_raw, conv_detail = score_conventionality(workdir)
-    test_raw, test_detail = score_test_coherence(
-        tests_passed, tests_failed, tests_total, outcome
-    )
+    test_raw, test_detail = score_test_coherence(tests_passed, tests_failed, tests_total, outcome)
 
     dimensions = []
     weighted_sum = 0.0
@@ -312,13 +347,15 @@ def compute_agent_entropy(transcript_path: str, workdir: str,
         weight = WEIGHTS[dim_name]
         weighted_sum += norm * weight
 
-        dimensions.append({
-            "name": dim_name,
-            "raw": round(raw_value, 3) if isinstance(raw_value, float) else raw_value,
-            "normalized": round(norm, 3),
-            "weight": weight,
-            "included": True,
-        })
+        dimensions.append(
+            {
+                "name": dim_name,
+                "raw": (round(raw_value, 3) if isinstance(raw_value, float) else raw_value),
+                "normalized": round(norm, 3),
+                "weight": weight,
+                "included": True,
+            }
+        )
 
     entropy_score = round(weighted_sum * 10, 1)
 
@@ -338,9 +375,8 @@ def compute_agent_entropy(transcript_path: str, workdir: str,
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(
-        description="Compute agent output entropy from transcript + workdir"
-    )
+
+    parser = argparse.ArgumentParser(description="Compute agent output entropy from transcript + workdir")
     parser.add_argument("transcript", help="Path to transcript.jsonl")
     parser.add_argument("workdir", help="Path to agent working directory")
     parser.add_argument("--tests-passed", type=int, default=0)
@@ -350,8 +386,11 @@ def main():
     args = parser.parse_args()
 
     result = compute_agent_entropy(
-        args.transcript, args.workdir,
-        args.tests_passed, args.tests_failed, args.tests_total,
+        args.transcript,
+        args.workdir,
+        args.tests_passed,
+        args.tests_failed,
+        args.tests_total,
         args.outcome,
     )
     print(json.dumps(result, indent=2))

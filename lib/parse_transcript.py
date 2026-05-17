@@ -101,8 +101,7 @@ def parse_transcript(path: str) -> dict:
                 continue
             has_result_summary = True
             usage = raw.get("usage", {})
-            cache_input = usage.get("cache_creation_input_tokens", 0) + \
-                usage.get("cache_read_input_tokens", 0)
+            cache_input = usage.get("cache_creation_input_tokens", 0) + usage.get("cache_read_input_tokens", 0)
             result["input_tokens"] = usage.get("input_tokens", 0) + cache_input
             result["output_tokens"] = usage.get("output_tokens", 0)
             result["turns"] = raw.get("num_turns", turn_count)
@@ -142,17 +141,13 @@ def parse_transcript(path: str) -> dict:
                     result["tool_calls_intent"] += 1
                     result["tool_tokens"] += msg_input + msg_output
                     short_name = tool_name.split("__")[-1] if "__" in tool_name else tool_name
-                    result["tool_breakdown"][short_name] = (
-                        result["tool_breakdown"].get(short_name, 0) + 1
-                    )
+                    result["tool_breakdown"][short_name] = result["tool_breakdown"].get(short_name, 0) + 1
                 else:
                     result["tool_calls_other"] += 1
 
                 if not first_edit_seen and is_code_edit_tool(tool_name):
                     first_edit_seen = True
-                    cumulative_tokens_at_first_edit = (
-                        cumulative_input + cumulative_output
-                    )
+                    cumulative_tokens_at_first_edit = cumulative_input + cumulative_output
 
                 if tool_name == "Read":
                     file_path = ""

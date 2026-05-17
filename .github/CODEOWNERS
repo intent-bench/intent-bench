@@ -1,0 +1,15 @@
+# Default owners for all files
+* @rhino11
+
+# Experiment definitions and prompts require careful review
+experiments/ @rhino11
+prompts/ @rhino11
+
+# Ledger schema changes affect all historical data
+lib/csv.sh @rhino11
+
+# Analysis pipeline
+analysis/ @rhino11
+
+# CI/CD
+.github/ @rhino11
