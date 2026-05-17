@@ -8,6 +8,9 @@ __pycache__/
 .venv/
 venv/
 
+# Generated assets
+assets/icon-256.png
+
 # OS
 .DS_Store
 Thumbs.db
