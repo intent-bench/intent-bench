@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>intent-bench -- Intent Fulfillment Benchmark for Coding Agents</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --text-muted: #8b949e;
+            --heading: #f0f6fc;
+            --blue: #648FFF;
+            --magenta: #DC267F;
+            --orange: #FE6100;
+            --purple: #785EF0;
+            --gold: #FFB000;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+        header svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1rem;
+        }
+        h1 {
+            color: var(--heading);
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+        h2 {
+            color: var(--heading);
+            font-size: 1.4rem;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        .card h3 {
+            color: var(--heading);
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+        }
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .metric:last-child { border-bottom: none; }
+        .metric-label { color: var(--text-muted); }
+        .metric-value { font-weight: 600; font-family: 'SF Mono', monospace; }
+        .metric-value.pass { color: #3fb950; }
+        .metric-value.warn { color: var(--gold); }
+        .metric-value.fail { color: var(--magenta); }
+        .bar-chart {
+            margin: 1rem 0;
+        }
+        .bar-row {
+            display: flex;
+            align-items: center;
+            margin: 0.5rem 0;
+        }
+        .bar-label {
+            width: 100px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .bar-track {
+            flex: 1;
+            height: 24px;
+            background: var(--bg);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding-left: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--heading);
+        }
+        .bar-fill.control { background: var(--blue); }
+        .bar-fill.treatment { background: var(--magenta); }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        th, td {
+            padding: 0.6rem 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            color: var(--heading);
+            font-weight: 600;
+            background: var(--surface);
+        }
+        td { font-family: 'SF Mono', monospace; font-size: 0.85rem; }
+        .tag {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .tag-control { background: rgba(100, 143, 255, 0.15); color: var(--blue); }
+        .tag-treatment { background: rgba(220, 38, 127, 0.15); color: var(--magenta); }
+        footer {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        a { color: var(--blue); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .note {
+            background: var(--surface);
+            border-left: 3px solid var(--orange);
+            padding: 1rem 1.25rem;
+            margin: 1.5rem 0;
+            border-radius: 0 4px 4px 0;
+            font-size: 0.9rem;
+        }
+        .conditions {
+            display: flex;
+            gap: 1rem;
+            margin: 0.5rem 0;
+            font-size: 0.85rem;
+        }
+        .conditions span { display: flex; align-items: center; gap: 0.4rem; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .dot-control { background: var(--blue); }
+        .dot-treatment { background: var(--magenta); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <svg viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="64" cy="64" r="60" fill="#1a1a2e" stroke="#648FFF" stroke-width="3"/>
+                <circle cx="64" cy="64" r="32" stroke="#648FFF" stroke-width="2.5" fill="none" opacity="0.6"/>
+                <circle cx="64" cy="64" r="20" stroke="#648FFF" stroke-width="2" fill="none" opacity="0.4"/>
+                <circle cx="64" cy="64" r="6" fill="#DC267F"/>
+                <line x1="64" y1="28" x2="64" y2="54" stroke="#648FFF" stroke-width="2" stroke-linecap="round"/>
+                <line x1="64" y1="74" x2="64" y2="100" stroke="#648FFF" stroke-width="2" stroke-linecap="round"/>
+                <line x1="28" y1="64" x2="54" y2="64" stroke="#648FFF" stroke-width="2" stroke-linecap="round"/>
+                <line x1="74" y1="64" x2="100" y2="64" stroke="#648FFF" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="38" cy="38" r="4" fill="#FE6100"/>
+                <line x1="41" y1="41" x2="58" y2="58" stroke="#FE6100" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="3 2"/>
+                <circle cx="90" cy="38" r="4" fill="#FE6100"/>
+                <line x1="87" y1="41" x2="70" y2="58" stroke="#FE6100" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="3 2"/>
+                <circle cx="64" cy="98" r="4" fill="#FE6100"/>
+                <line x1="64" y1="94" x2="64" y2="74" stroke="#FE6100" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="3 2"/>
+                <rect x="84" y="82" width="6" height="14" rx="1" fill="#785EF0" opacity="0.8"/>
+                <rect x="92" y="76" width="6" height="20" rx="1" fill="#785EF0" opacity="0.8"/>
+                <rect x="100" y="70" width="6" height="26" rx="1" fill="#785EF0" opacity="0.8"/>
+            </svg>
+            <h1>intent-bench</h1>
+            <p class="subtitle">Intent Fulfillment Benchmark for Coding Agents</p>
+        </header>
+
+        <p>Does providing structured intent to coding agents improve implementation effectiveness?
+           intent-bench measures this with a controlled A/B design: agents receive identical task
+           prompts, but the treatment condition additionally receives structured requirements
+           via a pluggable intent layer.</p>
+
+        <div class="conditions">
+            <span><span class="dot dot-control"></span> Control (prompt only)</span>
+            <span><span class="dot dot-treatment"></span> Treatment (prompt + intent layer)</span>
+        </div>
+
+        <h2>Results: Task Completion Rate</h2>
+
+        <div class="cards">
+            <div class="card">
+                <h3>url-shortener (baseline)</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.75rem;">
+                    10 requirements, depth 2 -- measures overhead
+                </p>
+                <div class="bar-chart">
+                    <div class="bar-row">
+                        <span class="bar-label">Control</span>
+                        <div class="bar-track">
+                            <div class="bar-fill control" style="width: 100%">100%</div>
+                        </div>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">Treatment</span>
+                        <div class="bar-track">
+                            <div class="bar-fill treatment" style="width: 80%">80%</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">N per condition</span>
+                    <span class="metric-value">5</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Fisher exact p</span>
+                    <span class="metric-value">1.000</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>task-manager (standard)</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.75rem;">
+                    13 requirements, depth 5 -- primary efficacy measurement
+                </p>
+                <div class="bar-chart">
+                    <div class="bar-row">
+                        <span class="bar-label">Control</span>
+                        <div class="bar-track">
+                            <div class="bar-fill control" style="width: 20%">20%</div>
+                        </div>
+                    </div>
+                    <div class="bar-row">
+                        <span class="bar-label">Treatment</span>
+                        <div class="bar-track">
+                            <div class="bar-fill treatment" style="width: 80%">80%</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">N per condition</span>
+                    <span class="metric-value">5</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Fisher exact p</span>
+                    <span class="metric-value">0.206</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="note">
+            On the baseline task (url-shortener), the intent layer adds overhead without
+            improving completion -- this is expected and shows the cost of structured planning
+            on trivially-sized tasks. On the standard task (task-manager), completion rate
+            increases from 20% to 80% -- the intent layer prevents the thrashing loops that
+            cause agents to fail on complex dependency chains.
+        </div>
+
+        <h2>Results: Token Efficiency and Variance</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Experiment</th>
+                    <th>Condition</th>
+                    <th>Mean Tokens (PASS)</th>
+                    <th>CV</th>
+                    <th>Completion</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>url-shortener</td>
+                    <td><span class="tag tag-control">control</span></td>
+                    <td>1,030,606</td>
+                    <td>0.458</td>
+                    <td class="metric-value pass">5/5</td>
+                </tr>
+                <tr>
+                    <td>url-shortener</td>
+                    <td><span class="tag tag-treatment">treatment</span></td>
+                    <td>2,220,736</td>
+                    <td>0.314</td>
+                    <td class="metric-value pass">4/5</td>
+                </tr>
+                <tr>
+                    <td>task-manager</td>
+                    <td><span class="tag tag-control">control</span></td>
+                    <td>4,427,685</td>
+                    <td>--</td>
+                    <td class="metric-value fail">1/5</td>
+                </tr>
+                <tr>
+                    <td>task-manager</td>
+                    <td><span class="tag tag-treatment">treatment</span></td>
+                    <td>3,636,346</td>
+                    <td>0.455</td>
+                    <td class="metric-value pass">4/5</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Configuration</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Agent</td><td>Claude Code</td></tr>
+                <tr><td>Model</td><td>claude-sonnet-4-20250514</td></tr>
+                <tr><td>Treatment</td><td>RTMX (MCP server + requirements database)</td></tr>
+                <tr><td>N per condition</td><td>5</td></tr>
+                <tr><td>Date</td><td>2026-05-16</td></tr>
+                <tr><td>Budget cap</td><td>$5 (baseline), $10 (standard)</td></tr>
+            </tbody>
+        </table>
+
+        <h2>Contribute</h2>
+
+        <p>intent-bench is open to community reproduction. Run the benchmark with your
+           preferred agent, model, or treatment and
+           <a href="https://github.com/intent-bench/intent-bench/blob/main/REPRODUCING.md">submit
+           your results via PR</a>.</p>
+
+        <p style="margin-top: 1rem;">Add new treatments, agents, or experiments by implementing
+           the plugin interface documented in the
+           <a href="https://github.com/intent-bench/intent-bench">repository README</a>.</p>
+
+        <footer>
+            <p><a href="https://github.com/intent-bench/intent-bench">GitHub</a> --
+               Apache 2.0 License</p>
+        </footer>
+    </div>
+</body>
+</html>

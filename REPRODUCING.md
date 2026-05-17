@@ -67,12 +67,18 @@ make charts     # Generate visualizations (results/charts/)
 
 ## Submitting Community Results
 
-We welcome reproduction attempts. To submit results:
+We welcome reproduction attempts. To submit your results:
 
-1. Run the benchmark with the exact commands above
-2. Include your `results/summary.csv` and `results/analysis.json`
-3. Report: model ID, date of runs, N per condition, any deviations
-4. Open a discussion on this repo with your findings
+1. Fork this repo
+2. Run the benchmark with the exact commands above
+3. Append your runs to `results/summary.csv` (do not overwrite existing data)
+4. Commit `results/summary.csv` and `results/analysis.json`
+5. Open a PR with title: `results: <agent> <model> <experiment> N=<n>`
+6. In the PR body, include: model ID, date of runs, N per condition,
+   hardware/OS, and any deviations from the documented procedure
+
+Merged results appear on the intent-bench results page and contribute
+to the community dataset.
 
 ## Verification
 
