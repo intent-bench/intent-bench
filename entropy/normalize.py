@@ -16,7 +16,6 @@ Default weights (sum to 1.0):
 
 import argparse
 import json
-import sys
 
 # Normalization parameters
 BASELINES = {
@@ -75,13 +74,15 @@ def compute_composite(dimensions: dict[str, float | None]) -> dict:
         weight = weights.get(dim, 0.0) if included else 0.0
         weighted_sum += norm * weight
 
-        result_dimensions.append({
-            "name": dim,
-            "raw": f"{raw}" if raw is not None else "N/A",
-            "normalized": round(norm, 3),
-            "weight": round(weight, 3),
-            "included": included,
-        })
+        result_dimensions.append(
+            {
+                "name": dim,
+                "raw": f"{raw}" if raw is not None else "N/A",
+                "normalized": round(norm, 3),
+                "weight": round(weight, 3),
+                "included": included,
+            }
+        )
 
     # Scale to 0-10
     entropy_score = round(weighted_sum * 10, 1)

@@ -31,7 +31,7 @@ echo "=== Harness Tests ==="
 # Test: csv.sh ledger operations
 echo "--- csv.sh ---"
 tmpdir=$(mktemp -d)
-trap "rm -rf $tmpdir" EXIT
+trap 'rm -rf "$tmpdir"' EXIT
 
 # Init ledger
 bash "$REPO_DIR/lib/csv.sh" init "$tmpdir/test.csv"

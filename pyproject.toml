@@ -1,0 +1,12 @@
+[tool.black]
+line-length = 120
+
+[tool.mypy]
+ignore_missing_imports = true
+allow_untyped_defs = true
+no_strict_optional = true
+disable_error_code = ["var-annotated", "index", "attr-defined", "operator", "arg-type"]
+
+[tool.flake8]
+max-line-length = 120
+extend-ignore = ["E203", "W503"]

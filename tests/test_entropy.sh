@@ -22,7 +22,7 @@ echo "=== Entropy Tests ==="
 
 # Create minimal transcript and workdir for testing
 tmpdir=$(mktemp -d)
-trap "rm -rf $tmpdir" EXIT
+trap 'rm -rf "$tmpdir"' EXIT
 
 # Create a minimal transcript (NDJSON)
 cat > "$tmpdir/transcript.jsonl" <<'EOF'

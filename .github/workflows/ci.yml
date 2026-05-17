@@ -11,9 +11,37 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install black flake8 mypy types-PyYAML
+
+      - name: Black (check only)
+        run: black --check --diff .
+
+      - name: Flake8
+        run: flake8 --max-line-length=120 --extend-ignore=E203,W503 .
+
+      - name: Mypy
+        run: mypy lib/parse_transcript.py entropy/agent_entropy.py analysis/compare.py analysis/plot.py
+
+      - name: ShellCheck
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+          shellcheck -e SC1091 -e SC2034 bench.sh agents/*.sh treatments/*.sh lib/csv.sh scripts/*.sh tests/*.sh
+
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    needs: lint
     steps:
       - uses: actions/checkout@v4
 
@@ -40,3 +68,24 @@ jobs:
         run: |
           make gen-fixtures
           git diff --exit-code fixtures/manual-spec/
+
+  sbom:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.spdx.json
+          retention-days: 90
