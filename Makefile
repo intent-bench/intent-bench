@@ -1,9 +1,9 @@
-.PHONY: setup test validate run-all analyze charts clean
+.PHONY: setup test validate run-all analyze charts clean icon
 
 SHELL := /bin/bash
 
 # Environment setup
-setup:
+setup: icon
 	pip3 install -r analysis/requirements.txt
 	@echo "Setup complete."
 
@@ -31,6 +31,12 @@ analyze:
 charts:
 	python3 analysis/plot.py results/summary.csv
 
+# Generate 256x256 PNG icon from SVG
+icon: assets/icon-256.png
+
+assets/icon-256.png: assets/icon.svg
+	rsvg-convert -w 256 -h 256 assets/icon.svg -o assets/icon-256.png
+
 # Generate manual-spec fixtures from RTMX fixtures
 gen-fixtures:
 	bash scripts/gen-manual-spec.sh
@@ -48,4 +54,4 @@ init-ledger:
 
 # Clean generated artifacts (not results)
 clean:
-	rm -rf results/charts/*.png results/charts/*.svg
+	rm -rf results/charts/*.png results/charts/*.svg assets/icon-256.png

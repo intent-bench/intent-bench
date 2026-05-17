@@ -5,33 +5,10 @@
       <stop offset="50%" style="stop-color:#785EF0"/>
       <stop offset="100%" style="stop-color:#DC267F"/>
     </linearGradient>
-    <linearGradient id="grad-dark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#4a6fcc"/>
-      <stop offset="50%" style="stop-color:#5e48c0"/>
-      <stop offset="100%" style="stop-color:#a81d63"/>
-    </linearGradient>
   </defs>
-
-  <!-- Background -->
   <rect width="128" height="128" rx="24" fill="#0d1117"/>
-
-  <!-- Shared vertical stroke (i stem + b stem) -->
-  <rect x="34" y="32" width="14" height="76" rx="7" fill="url(#grad)"/>
-
-  <!-- i dot -->
-  <circle cx="41" cy="22" r="8" fill="url(#grad)"/>
-
-  <!-- b bowl -->
-  <path d="M 48 60
-           C 48 60, 48 52, 56 48
-           C 64 44, 78 44, 86 52
-           C 94 60, 94 72, 94 76
-           C 94 80, 94 92, 86 100
-           C 78 108, 64 108, 56 104
-           C 48 100, 48 92, 48 92
-           Z"
-        fill="url(#grad)"/>
-
-  <!-- Inner counter of b -->
-  <ellipse cx="68" cy="76" rx="16" ry="20" fill="#0d1117"/>
+  <text x="64" y="102" text-anchor="middle"
+        font-family="Avenir, Nunito, Helvetica Neue, Arial, sans-serif"
+        font-weight="800" font-size="108" letter-spacing="-4"
+        fill="url(#grad)">ib</text>
 </svg>
