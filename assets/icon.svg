@@ -6,30 +6,9 @@
       <stop offset="100%" style="stop-color:#DC267F"/>
     </linearGradient>
   </defs>
-
-  <!-- Background -->
   <rect width="128" height="128" rx="24" fill="#0d1117"/>
-
-  <!-- i: stem -->
-  <rect x="24" y="42" width="14" height="66" rx="7" fill="url(#grad)"/>
-
-  <!-- i: dot -->
-  <circle cx="31" cy="26" r="8" fill="url(#grad)"/>
-
-  <!-- b: stem -->
-  <rect x="52" y="18" width="14" height="90" rx="7" fill="url(#grad)"/>
-
-  <!-- b: bowl -->
-  <path d="M 66 58
-           C 66 58, 66 50, 74 46
-           C 82 42, 94 44, 100 52
-           C 106 60, 106 72, 106 76
-           C 106 80, 106 92, 100 100
-           C 94 108, 82 110, 74 106
-           C 66 102, 66 94, 66 94
-           Z"
-        fill="url(#grad)"/>
-
-  <!-- b: counter -->
-  <ellipse cx="84" cy="76" rx="14" ry="18" fill="#0d1117"/>
+  <text x="64" y="102" text-anchor="middle"
+        font-family="Avenir, Nunito, Helvetica Neue, Arial, sans-serif"
+        font-weight="800" font-size="108" letter-spacing="-4"
+        fill="url(#grad)">ib</text>
 </svg>
