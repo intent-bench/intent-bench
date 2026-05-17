@@ -1,0 +1,18 @@
+name: url-shortener
+description: >
+  Greenfield experiment where an agent builds a complete URL shortener
+  from an empty repository. Baseline complexity: tests whether intent
+  layer planning overhead is offset by more focused execution.
+repo: none
+treatment: rtmx
+agent: claude-code
+max_budget_usd: "5.00"
+test_command: |
+  if [ -f Makefile ]; then make test
+  elif [ -f go.mod ]; then go test ./...
+  elif [ -f package.json ]; then npm install --silent 2>/dev/null && npm test
+  elif [ -f requirements.txt ]; then pip3 install -q -r requirements.txt 2>/dev/null && python3 -m pytest
+  elif [ -f pyproject.toml ]; then pip3 install -q -e . 2>/dev/null && python3 -m pytest
+  elif [ -f Cargo.toml ]; then cargo test
+  else echo "No test runner detected"; exit 1; fi
+setup_command: ""
