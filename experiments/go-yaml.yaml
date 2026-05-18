@@ -1,0 +1,12 @@
+name: go-yaml
+description: >
+  Brownfield experiment on go-yaml/yaml v3, the standard Go YAML
+  library. A parser crash fix, an omitempty bug with time.Time, and
+  a spurious quoting bug on boolean-like field names.
+repo: https://github.com/go-yaml/yaml.git
+commit_sha: ddb21b04cb889722cec8f89dc1b67f19d62d7f7d
+treatment: rtmx
+agent: claude-code
+max_budget_usd: "15.00"
+test_command: go test ./...
+setup_command: go mod download

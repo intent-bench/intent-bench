@@ -1,0 +1,13 @@
+name: csvkit
+description: >
+  Brownfield experiment on wireservice/csvkit, a Python suite of
+  command-line tools for working with CSV. A bug fix in column
+  selection with line numbers, a skip-lines interaction fix, and a
+  feature addition for case-insensitive sorting.
+repo: https://github.com/wireservice/csvkit.git
+commit_sha: bdd6e7e25b52cb52073c1a19dd0210cd85894871
+treatment: rtmx
+agent: claude-code
+max_budget_usd: "10.00"
+test_command: python -m pytest tests/
+setup_command: pip install -e '.[test]'
