@@ -228,6 +228,7 @@ execute_run() {
     # Delegate to agent wrapper
     local agent_script="$SCRIPT_DIR/agents/${agent}.sh"
     local exit_code=0
+    export BENCH_TEST_CMD="$EXP_TEST_CMD"
     run_in_new_pgroup bash "$agent_script" \
         "$workdir" "$model" "$prompt" "$result_dir" "$EXP_BUDGET" &
     local agent_pid=$!
