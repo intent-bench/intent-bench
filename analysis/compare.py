@@ -56,13 +56,22 @@ def filter_no_errors(df: pd.DataFrame) -> pd.DataFrame:
     return df[~df["outcome"].isin(["ERROR", "TIMEOUT"])]
 
 
+def _safe_round(val: float, digits: int = 1) -> float:
+    """Round a value, returning 0 for NaN/Inf (which are invalid JSON)."""
+    import math
+
+    if math.isnan(val) or math.isinf(val):
+        return 0
+    return round(val, digits)
+
+
 def compute_stats(series: pd.Series) -> dict:
     if len(series) == 0:
         return {"mean": 0, "median": 0, "std": 0, "n": 0}
     return {
-        "mean": round(float(series.mean()), 1),
-        "median": round(float(series.median()), 1),
-        "std": round(float(series.std()), 1),
+        "mean": _safe_round(float(series.mean()), 1),
+        "median": _safe_round(float(series.median()), 1),
+        "std": _safe_round(float(series.std()), 1),
         "n": int(len(series)),
     }
 
@@ -292,6 +301,26 @@ def check_cache(output_path: Path, input_hash: str) -> bool:
     return False
 
 
+def _sanitize_for_json(obj):
+    """Recursively replace NaN/Inf with None and numpy bools with Python bools."""
+    import math
+
+    if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
+        return None
+    if isinstance(obj, dict):
+        return {k: _sanitize_for_json(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize_for_json(v) for v in obj]
+    # Handle numpy bool_ and similar
+    if hasattr(obj, "item"):
+        return obj.item()
+    return obj
+
+
+def _json_dumps_safe(obj) -> str:
+    return json.dumps(_sanitize_for_json(obj), indent=2)
+
+
 def main():
     force = "--force" in sys.argv
     all_versions = "--all-versions" in sys.argv
@@ -331,7 +360,7 @@ def main():
         },
         "experiments": results,
     }
-    output_path.write_text(json.dumps(output, indent=2, default=str))
+    output_path.write_text(_json_dumps_safe(output))
     print(f"Analysis written to {output_path}")
 
 
