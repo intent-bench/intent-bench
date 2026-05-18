@@ -348,7 +348,8 @@
         .scatter-legend {
             display: flex;
             flex-wrap: wrap;
-            gap: 1rem;
+            justify-content: center;
+            gap: 0.5rem 1.25rem;
             margin-top: 0.75rem;
             padding-top: 0.75rem;
             border-top: 1px solid var(--border);
@@ -359,6 +360,7 @@
             display: flex;
             align-items: center;
             gap: 0.35rem;
+            white-space: nowrap;
         }
         .scatter-legend-shape {
             width: 12px;
@@ -655,7 +657,7 @@
     // -- Scatter plot: Control vs Treatment completion rate --
     var TIER_COLORS = {
         'Baseline': '#648FFF',
-        'Standard': '#FE6100',
+        'Standard': '#785EF0',
         'Advanced': '#DC267F'
     };
 
@@ -1022,15 +1024,25 @@
             el.appendChild(title);
             svg.appendChild(el);
 
-            // Label near point
+            // Label: experiment name + confidence value
             var label = document.createElementNS(ns, 'text');
             label.setAttribute('x', cx + POINT_R + 4);
-            label.setAttribute('y', cy + 3);
-            label.setAttribute('fill', '#8b949e');
-            label.setAttribute('font-size', '10');
+            label.setAttribute('y', cy - 2);
+            label.setAttribute('fill', '#c9d1d9');
+            label.setAttribute('font-size', '11');
             label.setAttribute('font-family', '-apple-system, sans-serif');
+            label.setAttribute('font-weight', '500');
             label.textContent = d.experiment;
             svg.appendChild(label);
+
+            var confLabel = document.createElementNS(ns, 'text');
+            confLabel.setAttribute('x', cx + POINT_R + 4);
+            confLabel.setAttribute('y', cy + 11);
+            confLabel.setAttribute('fill', '#8b949e');
+            confLabel.setAttribute('font-size', '10');
+            confLabel.setAttribute('font-family', 'SF Mono, Menlo, monospace');
+            confLabel.textContent = 'p=' + (1 - d.confidence).toFixed(3);
+            svg.appendChild(confLabel);
         });
 
         // Build legend
@@ -1079,7 +1091,7 @@
         var sizeNote = document.createElement('span');
         sizeNote.className = 'scatter-legend-item';
         sizeNote.style.color = '#8b949e';
-        sizeNote.innerHTML = drawShapeSVG('circle', 12, 'rgba(139,148,158,0.15)') + ' Ring = 1 \u2212 Fisher p'
+        sizeNote.innerHTML = drawShapeSVG('circle', 12, 'rgba(139,148,158,0.15)') + ' Ring \u221d 1\u2212p';
         legend.appendChild(sizeNote);
 
         wrap.appendChild(legend);
