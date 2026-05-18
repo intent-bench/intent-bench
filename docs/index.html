@@ -33,10 +33,21 @@
             background: linear-gradient(90deg, var(--blue), var(--purple), var(--magenta));
         }
         .container {
-            max-width: 860px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 3rem 1.5rem;
         }
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            font-size: 0.85rem;
+        }
+        nav a { color: var(--text-muted); text-decoration: none; }
+        nav a:hover { color: var(--heading); }
+        nav .home { font-weight: 700; color: var(--heading); font-size: 1rem; }
+
         header {
             text-align: center;
             margin-bottom: 3rem;
@@ -56,14 +67,6 @@
         .subtitle {
             color: var(--text-muted);
             font-size: 0.95rem;
-        }
-        h2 {
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin: 2.5rem 0 1rem;
         }
         .desc {
             font-size: 1.05rem;
@@ -87,111 +90,16 @@
         .dot-c { background: var(--blue); }
         .dot-t { background: var(--magenta); }
 
-        /* Tier groups */
-        .tier {
-            margin-bottom: 1.5rem;
-        }
-        .tier-label {
+        h2 {
             color: var(--text-muted);
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            margin-bottom: 0.75rem;
-            padding-left: 0.25rem;
+            margin: 2.5rem 0 1rem;
         }
 
-        /* Experiment cards */
-        .experiments {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 1rem;
-        }
-        .exp {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 1.25rem 1.5rem;
-        }
-        .exp-name {
-            color: var(--heading);
-            font-size: 0.95rem;
-            font-weight: 600;
-            margin-bottom: 0.2rem;
-        }
-        .exp-meta {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            margin-bottom: 1rem;
-        }
-        .bar-row {
-            display: flex;
-            align-items: center;
-            margin: 0.4rem 0;
-        }
-        .bar-label {
-            width: 80px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-        .bar-track {
-            flex: 1;
-            height: 22px;
-            background: var(--bg);
-            border-radius: 6px;
-            overflow: hidden;
-        }
-        .bar-fill {
-            height: 100%;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            padding-left: 8px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: var(--heading);
-            min-width: 36px;
-        }
-        .bar-c { background: var(--blue); }
-        .bar-t { background: var(--magenta); }
-        .stats {
-            display: flex;
-            gap: 1rem;
-            margin-top: 0.75rem;
-            padding-top: 0.75rem;
-            border-top: 1px solid var(--border);
-        }
-        .stat { flex: 1; }
-        .stat-label {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .stat-value {
-            font-size: 0.85rem;
-            font-weight: 600;
-            font-family: 'SF Mono', 'Menlo', monospace;
-            color: var(--heading);
-        }
-        .note {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 1.25rem 1.5rem;
-            margin: 1.5rem 0;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            line-height: 1.7;
-        }
-        .no-data {
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            padding: 1rem;
-        }
-
-        /* Grid table */
+        /* Heatmap table */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -215,6 +123,122 @@
             border-bottom: 1px solid var(--border);
         }
         tr:last-child td { border-bottom: none; }
+        td.td-name {
+            font-family: -apple-system, sans-serif;
+            font-weight: 500;
+            color: var(--heading);
+        }
+        .tier-sep td {
+            border-bottom: 2px solid var(--border);
+        }
+        .tier-header td {
+            font-family: -apple-system, sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            padding-top: 1rem;
+            padding-bottom: 0.35rem;
+            border-bottom: none;
+        }
+        .cell-pos { color: var(--green); font-weight: 600; }
+        .cell-neg { color: var(--magenta); font-weight: 600; }
+        .cell-neutral { color: var(--text-muted); }
+        .cell-na {
+            color: var(--text-muted);
+            font-style: italic;
+            font-family: -apple-system, sans-serif;
+        }
+        .cell-sig { color: var(--green); }
+        .cell-nsig { color: var(--text-muted); }
+        .cell-warn { color: var(--yellow); }
+
+        /* Expandable row */
+        .heatmap-row { cursor: pointer; transition: background 0.1s; }
+        .heatmap-row:hover { background: rgba(255,255,255,0.02); }
+        .heatmap-row td:first-child::before {
+            content: '\25B8';
+            display: inline-block;
+            width: 1em;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            transition: transform 0.15s;
+        }
+        .heatmap-row.expanded td:first-child::before {
+            transform: rotate(90deg);
+        }
+        .detail-row { display: none; }
+        .detail-row.visible { display: table-row; }
+        .detail-row td {
+            padding: 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .detail-panel {
+            background: var(--surface);
+            border-radius: 8px;
+            margin: 0.5rem 0.75rem 1rem;
+            padding: 1.25rem 1.5rem;
+        }
+
+        /* Detail card content */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+        .detail-section h4 {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        .bar-row {
+            display: flex;
+            align-items: center;
+            margin: 0.35rem 0;
+        }
+        .bar-label {
+            width: 75px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .bar-track {
+            flex: 1;
+            height: 20px;
+            background: var(--bg);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            padding-left: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--heading);
+            min-width: 32px;
+        }
+        .bar-c { background: var(--blue); }
+        .bar-t { background: var(--magenta); }
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.3rem 0;
+            font-size: 0.8rem;
+        }
+        .metric-label { color: var(--text-muted); }
+        .metric-value {
+            font-family: 'SF Mono', 'Menlo', monospace;
+            color: var(--heading);
+            font-size: 0.8rem;
+        }
+
+        /* Tags */
         .tag {
             display: inline-block;
             padding: 0.1rem 0.45rem;
@@ -225,30 +249,23 @@
         }
         .tag-c { background: rgba(100, 143, 255, 0.12); color: var(--blue); }
         .tag-t { background: rgba(220, 38, 127, 0.12); color: var(--magenta); }
-        .pass { color: #3fb950; }
-        .fail { color: var(--magenta); }
-        .muted { color: var(--text-muted); }
 
-        /* Heatmap cell */
-        .cell-pass {
-            color: var(--green);
-            font-weight: 600;
-        }
-        .cell-fail {
-            color: var(--magenta);
-        }
-        .cell-na {
+        /* Note */
+        .note {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem 1.5rem;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
             color: var(--text-muted);
-            font-style: italic;
-            font-family: -apple-system, sans-serif;
+            line-height: 1.7;
         }
-        .cell-delta-pos {
-            color: var(--green);
-            font-size: 0.75rem;
-        }
-        .cell-delta-neg {
-            color: var(--magenta);
-            font-size: 0.75rem;
+        .no-data {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            padding: 1rem;
         }
 
         /* Tabs */
@@ -272,6 +289,7 @@
             background: var(--border);
         }
 
+        /* Footer */
         footer {
             margin-top: 3rem;
             padding-top: 1.5rem;
@@ -312,22 +330,12 @@
             box-shadow: 0 0 0 5px rgba(120, 94, 240, 0.45);
             text-decoration: none;
         }
-        nav {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-            font-size: 0.85rem;
-        }
-        nav a {
+
+        /* Config table */
+        .config-table td:first-child {
+            font-family: -apple-system, sans-serif;
             color: var(--text-muted);
-            text-decoration: none;
-        }
-        nav a:hover { color: var(--heading); }
-        nav .home {
-            font-weight: 700;
-            color: var(--heading);
-            font-size: 1rem;
+            width: 140px;
         }
     </style>
 </head>
@@ -368,13 +376,10 @@
             <span><span class="dot dot-t"></span> Treatment (prompt + intent)</span>
         </div>
 
-        <h2>Completion Rate</h2>
-        <div id="completion-cards"></div>
+        <h2>Results</h2>
+        <div id="heatmap"></div>
 
         <div id="analysis-note" class="note" style="display:none"></div>
-
-        <h2>Token Efficiency</h2>
-        <div id="token-table"></div>
 
         <h2>Model &times; Experiment Grid</h2>
         <div id="grid-tabs" class="tabs"></div>
@@ -397,8 +402,7 @@
     </div>
 
     <script>
-    // Experiment metadata (tier, requirements count, depth)
-    const EXP_META = {
+    var EXP_META = {
         'url-shortener': { tier: 'Baseline', reqs: 10, depth: 2 },
         'task-manager':  { tier: 'Standard', reqs: 13, depth: 5 },
         'rest-api':      { tier: 'Standard', reqs: 13, depth: 4 },
@@ -411,70 +415,166 @@
         'go-yaml':       { tier: 'Advanced', reqs: 4,  depth: 2 },
         'structlog':     { tier: 'Advanced', reqs: 4,  depth: 3 }
     };
-
-    const TIER_ORDER = ['Baseline', 'Standard', 'Advanced'];
+    var TIER_ORDER = ['Baseline', 'Standard', 'Advanced'];
 
     function fmt(n) {
         if (n === null || n === undefined || isNaN(n)) return '\u2014';
         return n.toLocaleString('en-US', { maximumFractionDigits: 0 });
     }
-
     function pct(n) {
         if (n === null || n === undefined || isNaN(n)) return '\u2014';
         return Math.round(n * 100) + '%';
     }
-
-    function verdict(exp) {
-        var cr = exp.completion_rate;
-        if (cr.treatment > cr.control + 0.1) return { text: 'efficacy', cls: 'pass' };
-        if (cr.treatment < cr.control - 0.1) return { text: 'overhead', cls: 'muted' };
-        return { text: 'neutral', cls: 'muted' };
+    function signedPP(n) {
+        if (n === null || n === undefined || isNaN(n)) return '\u2014';
+        var pp = Math.round(n * 100);
+        if (pp > 0) return '+' + pp + 'pp';
+        if (pp < 0) return pp + 'pp';
+        return '0pp';
     }
 
-    function renderCards(experiments) {
-        var container = document.getElementById('completion-cards');
+    function renderHeatmap(experiments) {
+        var container = document.getElementById('heatmap');
+        if (!experiments || experiments.length === 0) {
+            container.innerHTML = '<p class="no-data">Run <code>make analyze</code> to generate results.</p>';
+            return;
+        }
+
+        // Group by tier
         var byTier = {};
         TIER_ORDER.forEach(function(t) { byTier[t] = []; });
-
         experiments.forEach(function(exp) {
-            var meta = EXP_META[exp.experiment] || { tier: 'Other', reqs: '?', depth: '?' };
-            var tier = meta.tier;
+            var meta = EXP_META[exp.experiment] || { tier: 'Other' };
+            var tier = meta.tier || 'Other';
             if (!byTier[tier]) byTier[tier] = [];
-            byTier[tier].push({ exp: exp, meta: meta });
+            byTier[tier].push(exp);
         });
 
-        var html = '';
+        var html = '<table><thead><tr>';
+        html += '<th>Experiment</th>';
+        html += '<th>N</th>';
+        html += '<th>Control</th>';
+        html += '<th>Treatment</th>';
+        html += '<th>Delta</th>';
+        html += '<th>Fisher p</th>';
+        html += '<th>Tokens (C/T)</th>';
+        html += '</tr></thead><tbody>';
+
+        var prevTier = null;
         TIER_ORDER.forEach(function(tier) {
             var items = byTier[tier];
             if (items.length === 0) return;
-            html += '<div class="tier">';
-            html += '<div class="tier-label">' + tier + '</div>';
-            html += '<div class="experiments">';
-            items.forEach(function(item) {
-                var e = item.exp;
-                var m = item.meta;
-                var v = verdict(e);
-                var cPct = Math.round(e.completion_rate.control * 100);
-                var tPct = Math.round(e.completion_rate.treatment * 100);
-                var fisherP = e.completion_significance
-                    ? e.completion_significance.fisher_p.toFixed(3)
-                    : '\u2014';
-                html += '<div class="exp">';
-                html += '<div class="exp-name">' + e.experiment + '</div>';
-                html += '<div class="exp-meta">' + m.reqs + ' requirements / depth ' + m.depth + '</div>';
-                html += '<div class="bar-row"><span class="bar-label">Control</span>';
-                html += '<div class="bar-track"><div class="bar-fill bar-c" style="width:' + Math.max(cPct, 5) + '%">' + cPct + '%</div></div></div>';
-                html += '<div class="bar-row"><span class="bar-label">Treatment</span>';
-                html += '<div class="bar-track"><div class="bar-fill bar-t" style="width:' + Math.max(tPct, 5) + '%">' + tPct + '%</div></div></div>';
-                html += '<div class="stats">';
-                html += '<div class="stat"><div class="stat-label">N</div><div class="stat-value">' + e.runs.control + '</div></div>';
-                html += '<div class="stat"><div class="stat-label">Fisher p</div><div class="stat-value">' + fisherP + '</div></div>';
-                html += '<div class="stat"><div class="stat-label">Verdict</div><div class="stat-value ' + v.cls + '">' + v.text + '</div></div>';
-                html += '</div></div>';
+
+            // Tier header row
+            html += '<tr class="tier-header"><td colspan="7">' + tier + '</td></tr>';
+
+            items.forEach(function(exp, idx) {
+                var meta = EXP_META[exp.experiment] || {};
+                var cr = exp.completion_rate;
+                var delta = cr.treatment - cr.control;
+                var deltaCls = delta > 0.05 ? 'cell-pos' : (delta < -0.05 ? 'cell-neg' : 'cell-neutral');
+                var fisherP = exp.completion_significance ? exp.completion_significance.fisher_p : null;
+                var fisherCls = (fisherP !== null && fisherP < 0.05) ? 'cell-sig' : 'cell-nsig';
+                var n = exp.runs.control;
+                var nCls = n < 5 ? 'cell-warn' : '';
+                var cTokens = exp.total_tokens.control.mean;
+                var tTokens = exp.total_tokens.treatment.mean;
+                var isLast = idx === items.length - 1;
+
+                var rowId = 'row-' + exp.experiment;
+                html += '<tr class="heatmap-row' + (isLast ? ' tier-sep' : '') + '" data-exp="' + exp.experiment + '">';
+                html += '<td class="td-name">' + exp.experiment + '</td>';
+                html += '<td class="' + nCls + '">' + n + '</td>';
+                html += '<td>' + pct(cr.control) + '</td>';
+                html += '<td>' + pct(cr.treatment) + '</td>';
+                html += '<td class="' + deltaCls + '">' + signedPP(delta) + '</td>';
+                html += '<td class="' + fisherCls + '">' + (fisherP !== null ? fisherP.toFixed(3) : '\u2014') + '</td>';
+                html += '<td>' + fmt(cTokens) + ' / ' + fmt(tTokens) + '</td>';
+                html += '</tr>';
+
+                // Detail row (hidden by default)
+                html += '<tr class="detail-row" id="detail-' + exp.experiment + '">';
+                html += '<td colspan="7">' + renderDetail(exp, meta) + '</td>';
+                html += '</tr>';
             });
-            html += '</div></div>';
         });
+
+        html += '</tbody></table>';
         container.innerHTML = html;
+
+        // Attach click handlers
+        container.querySelectorAll('.heatmap-row').forEach(function(row) {
+            row.addEventListener('click', function() {
+                var expName = this.getAttribute('data-exp');
+                var detail = document.getElementById('detail-' + expName);
+                var isOpen = detail.classList.contains('visible');
+                // Close all
+                container.querySelectorAll('.detail-row').forEach(function(d) { d.classList.remove('visible'); });
+                container.querySelectorAll('.heatmap-row').forEach(function(r) { r.classList.remove('expanded'); });
+                if (!isOpen) {
+                    detail.classList.add('visible');
+                    this.classList.add('expanded');
+                }
+            });
+        });
+    }
+
+    function renderDetail(exp, meta) {
+        var cr = exp.completion_rate;
+        var cPct = Math.round(cr.control * 100);
+        var tPct = Math.round(cr.treatment * 100);
+
+        var html = '<div class="detail-panel"><div class="detail-grid">';
+
+        // Left column: completion bars + basic stats
+        html += '<div class="detail-section">';
+        html += '<h4>Completion Rate</h4>';
+        html += '<div class="bar-row"><span class="bar-label">Control</span>';
+        html += '<div class="bar-track"><div class="bar-fill bar-c" style="width:' + Math.max(cPct, 5) + '%">' + cPct + '%</div></div></div>';
+        html += '<div class="bar-row"><span class="bar-label">Treatment</span>';
+        html += '<div class="bar-track"><div class="bar-fill bar-t" style="width:' + Math.max(tPct, 5) + '%">' + tPct + '%</div></div></div>';
+
+        html += '<h4 style="margin-top:1rem">Experiment</h4>';
+        html += '<div class="metric-row"><span class="metric-label">Requirements</span><span class="metric-value">' + (meta.reqs || '?') + '</span></div>';
+        html += '<div class="metric-row"><span class="metric-label">Max depth</span><span class="metric-value">' + (meta.depth || '?') + '</span></div>';
+        html += '<div class="metric-row"><span class="metric-label">Runs per condition</span><span class="metric-value">' + exp.runs.control + '</span></div>';
+        html += '</div>';
+
+        // Right column: token + statistical details
+        html += '<div class="detail-section">';
+        html += '<h4>Token Efficiency</h4>';
+        var cTok = exp.total_tokens.control;
+        var tTok = exp.total_tokens.treatment;
+        html += '<div class="metric-row"><span class="metric-label">Control mean</span><span class="metric-value">' + fmt(cTok.mean) + '</span></div>';
+        html += '<div class="metric-row"><span class="metric-label">Treatment mean</span><span class="metric-value">' + fmt(tTok.mean) + '</span></div>';
+
+        if (exp.token_efficiency) {
+            var te = exp.token_efficiency;
+            var direction = te.ratio > 1.0 ? 'saves' : 'adds';
+            html += '<div class="metric-row"><span class="metric-label">Ratio (C/T)</span><span class="metric-value">' + te.ratio.toFixed(3) + ' (' + direction + ')</span></div>';
+            html += '<div class="metric-row"><span class="metric-label">95% CI</span><span class="metric-value">[' + te.ci_lower.toFixed(2) + ', ' + te.ci_upper.toFixed(2) + ']</span></div>';
+        }
+
+        if (exp.variance) {
+            html += '<h4 style="margin-top:1rem">Variance</h4>';
+            html += '<div class="metric-row"><span class="metric-label">Control CV</span><span class="metric-value">' + exp.variance.control_cv.toFixed(3) + '</span></div>';
+            html += '<div class="metric-row"><span class="metric-label">Treatment CV</span><span class="metric-value">' + exp.variance.treatment_cv.toFixed(3) + '</span></div>';
+            var vr = exp.variance.variance_reduction;
+            var vrCls = vr > 0 ? 'cell-pos' : 'cell-neg';
+            html += '<div class="metric-row"><span class="metric-label">Reduction</span><span class="metric-value ' + vrCls + '">' + Math.round(vr * 100) + '%</span></div>';
+        }
+
+        if (exp.mann_whitney) {
+            html += '<h4 style="margin-top:1rem">Statistical Tests</h4>';
+            html += '<div class="metric-row"><span class="metric-label">Mann-Whitney p</span><span class="metric-value">' + exp.mann_whitney.p_value.toFixed(4) + '</span></div>';
+            if (exp.completion_significance) {
+                html += '<div class="metric-row"><span class="metric-label">Fisher exact p</span><span class="metric-value">' + exp.completion_significance.fisher_p.toFixed(4) + '</span></div>';
+            }
+        }
+
+        html += '</div>';
+        html += '</div></div>';
+        return html;
     }
 
     function renderNote(experiments) {
@@ -491,15 +591,21 @@
         var parts = [];
         if (baseline.length > 0) {
             var b = baseline[0];
-            var bv = verdict(b);
-            if (bv.text === 'overhead') {
+            var delta = b.completion_rate.treatment - b.completion_rate.control;
+            if (delta < -0.05) {
                 parts.push('On the baseline task, the intent layer adds overhead without improving completion.');
+            } else if (delta > 0.05) {
+                parts.push('On the baseline task, the intent layer improves completion rate.');
+            } else {
+                parts.push('On the baseline task, the intent layer has no significant effect on completion.');
             }
         }
         if (standard.length > 0) {
-            var efficacyCount = standard.filter(function(e) { return verdict(e).text === 'efficacy'; }).length;
-            if (efficacyCount > 0) {
-                parts.push('On ' + efficacyCount + ' of ' + standard.length +
+            var efficacy = standard.filter(function(e) {
+                return e.completion_rate.treatment - e.completion_rate.control > 0.1;
+            });
+            if (efficacy.length > 0) {
+                parts.push('On ' + efficacy.length + ' of ' + standard.length +
                     ' standard tasks, the intent layer improves completion rate.');
             }
         }
@@ -510,51 +616,15 @@
         }
     }
 
-    function renderTokenTable(experiments) {
-        var container = document.getElementById('token-table');
-        var html = '<table><thead><tr>';
-        html += '<th>Experiment</th><th>Condition</th><th>Mean Tokens</th><th>CV</th><th>Pass</th>';
-        html += '</tr></thead><tbody>';
-
-        experiments.forEach(function(exp) {
-            ['control', 'treatment'].forEach(function(cond) {
-                var tokens = exp.total_tokens[cond];
-                var runs = exp.runs[cond];
-                var cr = exp.completion_rate[cond];
-                var passN = Math.round(cr * runs);
-                var cv = exp.variance
-                    ? (cond === 'control' ? exp.variance.control_cv : exp.variance.treatment_cv)
-                    : null;
-                var cvStr = (cv !== null && cv !== undefined && !isNaN(cv)) ? cv.toFixed(3) : '\u2014';
-                var tagCls = cond === 'control' ? 'tag-c' : 'tag-t';
-                var passCls = passN === runs ? 'pass' : (passN === 0 ? 'fail' : 'muted');
-
-                html += '<tr>';
-                html += '<td>' + exp.experiment + '</td>';
-                html += '<td><span class="tag ' + tagCls + '">' + cond + '</span></td>';
-                html += '<td>' + fmt(tokens.mean) + '</td>';
-                html += '<td>' + cvStr + '</td>';
-                html += '<td class="' + passCls + '">' + passN + '/' + runs + '</td>';
-                html += '</tr>';
-            });
-        });
-        html += '</tbody></table>';
-        container.innerHTML = html;
-    }
-
     function renderGrid(experiments, ledgerData) {
-        // Build model x experiment grid from raw ledger data
-        // Group by model, then by experiment, showing completion rate per condition
         var tabsEl = document.getElementById('grid-tabs');
         var tableEl = document.getElementById('grid-table');
 
         if (!ledgerData || ledgerData.length === 0) {
-            // Fall back to analysis.json data (single model assumed)
             renderSimpleGrid(experiments);
             return;
         }
 
-        // Parse CSV to extract model x experiment matrix
         var lines = ledgerData.trim().split('\n');
         var headers = lines[0].split(',');
         var modelIdx = headers.indexOf('model');
@@ -583,7 +653,6 @@
             if (expNames.indexOf(expName) < 0) expNames.push(expName);
         }
 
-        // Sort experiments by tier order
         expNames.sort(function(a, b) {
             var ta = TIER_ORDER.indexOf((EXP_META[a] || {}).tier || 'Other');
             var tb = TIER_ORDER.indexOf((EXP_META[b] || {}).tier || 'Other');
@@ -591,8 +660,6 @@
         });
 
         var modelNames = Object.keys(models).sort();
-
-        // Render tabs for control/treatment/delta views
         var views = ['completion', 'delta'];
         var viewLabels = { completion: 'Completion Rate', delta: 'Treatment Delta' };
         var currentView = 'completion';
@@ -615,7 +682,7 @@
                         var tRate = data.treatment.total > 0 ? data.treatment.pass / data.treatment.total : null;
                         if (cRate !== null && tRate !== null) {
                             var delta = Math.round((tRate - cRate) * 100);
-                            var cls = delta > 0 ? 'cell-delta-pos' : (delta < 0 ? 'cell-delta-neg' : 'muted');
+                            var cls = delta > 0 ? 'cell-pos' : (delta < 0 ? 'cell-neg' : 'cell-neutral');
                             var sign = delta > 0 ? '+' : '';
                             html += '<td class="' + cls + '">' + sign + delta + 'pp</td>';
                         } else {
@@ -637,7 +704,6 @@
             tableEl.innerHTML = html;
         }
 
-        // Render tabs
         var tabHtml = '';
         views.forEach(function(v) {
             var active = v === currentView ? ' active' : '';
@@ -658,7 +724,6 @@
     }
 
     function renderSimpleGrid(experiments) {
-        // Single-model fallback: show experiments as columns, one row
         var tableEl = document.getElementById('grid-table');
         if (experiments.length === 0) {
             tableEl.innerHTML = '<p class="no-data">No data available</p>';
@@ -669,11 +734,13 @@
         html += '</tr></thead><tbody>';
         html += '<tr><td style="font-family:-apple-system,sans-serif">Control</td>';
         experiments.forEach(function(e) {
-            html += '<td class="' + (e.completion_rate.control >= 0.8 ? 'cell-pass' : 'cell-fail') + '">' + pct(e.completion_rate.control) + '</td>';
+            var cls = e.completion_rate.control >= 0.8 ? 'cell-pos' : (e.completion_rate.control >= 0.5 ? 'cell-neutral' : 'cell-neg');
+            html += '<td class="' + cls + '">' + pct(e.completion_rate.control) + '</td>';
         });
         html += '</tr><tr><td style="font-family:-apple-system,sans-serif">Treatment</td>';
         experiments.forEach(function(e) {
-            html += '<td class="' + (e.completion_rate.treatment >= 0.8 ? 'cell-pass' : 'cell-fail') + '">' + pct(e.completion_rate.treatment) + '</td>';
+            var cls = e.completion_rate.treatment >= 0.8 ? 'cell-pos' : (e.completion_rate.treatment >= 0.5 ? 'cell-neutral' : 'cell-neg');
+            html += '<td class="' + cls + '">' + pct(e.completion_rate.treatment) + '</td>';
         });
         html += '</tr></tbody></table>';
         tableEl.innerHTML = html;
@@ -687,7 +754,7 @@
         experiments.forEach(function(e) { totalRuns += e.runs.control + e.runs.treatment; });
         var expNames = experiments.map(function(e) { return e.experiment; });
 
-        var html = '<table><tbody>';
+        var html = '<table class="config-table"><tbody>';
         html += '<tr><td>Experiments</td><td>' + expNames.join(', ') + '</td></tr>';
         html += '<tr><td>Total runs</td><td>' + totalRuns + '</td></tr>';
         html += '<tr><td>Score version</td><td>' + scoreVer + '</td></tr>';
@@ -696,19 +763,14 @@
         container.innerHTML = html;
     }
 
-    // Load data and render.
-    // Data files are copied into docs/ by 'make analyze' so they are
-    // accessible when served via GitHub Pages (which only serves /docs).
     fetch('analysis.json')
         .then(function(r) { return r.json(); })
         .then(function(data) {
             var experiments = data.experiments || [];
-            renderCards(experiments);
+            renderHeatmap(experiments);
             renderNote(experiments);
-            renderTokenTable(experiments);
             renderConfig(data.meta, experiments);
 
-            // Try loading ledger CSV for model grid
             return fetch('summary.csv')
                 .then(function(r) { return r.text(); })
                 .then(function(csv) { renderGrid(experiments, csv); })
@@ -716,7 +778,7 @@
         })
         .catch(function(err) {
             console.error('Failed to load analysis data:', err);
-            document.getElementById('completion-cards').innerHTML =
+            document.getElementById('heatmap').innerHTML =
                 '<p class="no-data">Run <code>make analyze</code> to generate results.</p>';
         });
     </script>
