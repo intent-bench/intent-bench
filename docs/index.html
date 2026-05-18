@@ -331,6 +331,35 @@
             text-decoration: none;
         }
 
+        /* Scatter plot */
+        .scatter-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem 1.5rem 1rem;
+            margin: 1.5rem 0;
+        }
+        .scatter-wrap svg { display: block; }
+        .scatter-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .scatter-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .scatter-legend-shape {
+            width: 12px;
+            height: 12px;
+        }
+
         /* Config table */
         .config-table td:first-child {
             font-family: -apple-system, sans-serif;
@@ -378,6 +407,9 @@
 
         <h2>Results</h2>
         <div id="heatmap"></div>
+
+        <h2>Treatment Effect</h2>
+        <div id="scatter"></div>
 
         <div id="analysis-note" class="note" style="display:none"></div>
 
@@ -616,6 +648,417 @@
         }
     }
 
+    // -- Scatter plot: Control vs Treatment completion rate --
+    var TIER_COLORS = {
+        'Baseline': '#648FFF',
+        'Standard': '#785EF0',
+        'Advanced': '#DC267F'
+    };
+
+    // Model -> shape. Returns SVG path centered at (0,0) for a given size.
+    var MODEL_SHAPES = {};
+    function getModelKey(name) {
+        // Normalize: "claude-sonnet-4-20250514" -> "claude-sonnet-4"
+        // "openai/gpt-4o" -> "gpt-4o", "ollama/llama3" -> "llama3"
+        var n = name.replace(/^(openai|ollama|deepseek)\//, '');
+        n = n.replace(/-\d{8}$/, '');
+        return n;
+    }
+
+    function shapeForModel(modelKey) {
+        // Stable assignment from a fixed palette of shapes
+        var shapes = ['circle', 'square', 'diamond', 'triangle-up', 'triangle-down', 'cross'];
+        // Known models get fixed shapes
+        var known = {
+            'claude-sonnet-4': 'circle',
+            'claude-opus-4': 'circle',
+            'gpt-4o': 'square',
+            'gpt-4.1': 'square',
+            'llama3': 'diamond',
+            'deepseek-chat': 'triangle-up',
+            'deepseek-coder': 'triangle-up'
+        };
+        for (var k in known) {
+            if (modelKey.indexOf(k) >= 0) return known[k];
+        }
+        // Hash unknown models to remaining shapes
+        var hash = 0;
+        for (var i = 0; i < modelKey.length; i++) hash = ((hash << 5) - hash + modelKey.charCodeAt(i)) | 0;
+        return shapes[Math.abs(hash) % shapes.length];
+    }
+
+    function drawShape(svg, shape, cx, cy, r, fill, stroke) {
+        var ns = 'http://www.w3.org/2000/svg';
+        var el;
+        switch (shape) {
+            case 'circle':
+                el = document.createElementNS(ns, 'circle');
+                el.setAttribute('cx', cx);
+                el.setAttribute('cy', cy);
+                el.setAttribute('r', r);
+                break;
+            case 'square':
+                el = document.createElementNS(ns, 'rect');
+                el.setAttribute('x', cx - r);
+                el.setAttribute('y', cy - r);
+                el.setAttribute('width', r * 2);
+                el.setAttribute('height', r * 2);
+                break;
+            case 'diamond':
+                el = document.createElementNS(ns, 'polygon');
+                el.setAttribute('points',
+                    cx + ',' + (cy - r * 1.2) + ' ' +
+                    (cx + r * 1.2) + ',' + cy + ' ' +
+                    cx + ',' + (cy + r * 1.2) + ' ' +
+                    (cx - r * 1.2) + ',' + cy);
+                break;
+            case 'triangle-up':
+                el = document.createElementNS(ns, 'polygon');
+                var h = r * 1.3;
+                el.setAttribute('points',
+                    cx + ',' + (cy - h) + ' ' +
+                    (cx + h) + ',' + (cy + h * 0.7) + ' ' +
+                    (cx - h) + ',' + (cy + h * 0.7));
+                break;
+            case 'triangle-down':
+                el = document.createElementNS(ns, 'polygon');
+                var hd = r * 1.3;
+                el.setAttribute('points',
+                    cx + ',' + (cy + hd) + ' ' +
+                    (cx + hd) + ',' + (cy - hd * 0.7) + ' ' +
+                    (cx - hd) + ',' + (cy - hd * 0.7));
+                break;
+            case 'cross':
+                el = document.createElementNS(ns, 'path');
+                var a = r * 0.4, b = r;
+                el.setAttribute('d',
+                    'M' + (cx - a) + ',' + (cy - b) +
+                    'h' + (a * 2) + 'v' + (b - a) +
+                    'h' + (b - a) + 'v' + (a * 2) +
+                    'h-' + (b - a) + 'v' + (b - a) +
+                    'h-' + (a * 2) + 'v-' + (b - a) +
+                    'h-' + (b - a) + 'v-' + (a * 2) +
+                    'h' + (b - a) + 'Z');
+                break;
+            default:
+                el = document.createElementNS(ns, 'circle');
+                el.setAttribute('cx', cx);
+                el.setAttribute('cy', cy);
+                el.setAttribute('r', r);
+        }
+        el.setAttribute('fill', fill);
+        el.setAttribute('stroke', stroke || 'none');
+        el.setAttribute('stroke-width', '1.5');
+        return el;
+    }
+
+    function drawShapeSVG(shape, size, fill) {
+        // Returns a small inline SVG string for the legend
+        var s = size, h = s / 2;
+        var svg = '<svg class="scatter-legend-shape" viewBox="0 0 ' + s + ' ' + s + '" xmlns="http://www.w3.org/2000/svg">';
+        switch (shape) {
+            case 'circle':
+                svg += '<circle cx="' + h + '" cy="' + h + '" r="' + (h - 1) + '" fill="' + fill + '"/>'; break;
+            case 'square':
+                svg += '<rect x="1" y="1" width="' + (s - 2) + '" height="' + (s - 2) + '" fill="' + fill + '"/>'; break;
+            case 'diamond':
+                svg += '<polygon points="' + h + ',1 ' + (s - 1) + ',' + h + ' ' + h + ',' + (s - 1) + ' 1,' + h + '" fill="' + fill + '"/>'; break;
+            case 'triangle-up':
+                svg += '<polygon points="' + h + ',1 ' + (s - 1) + ',' + (s - 1) + ' 1,' + (s - 1) + '" fill="' + fill + '"/>'; break;
+            case 'triangle-down':
+                svg += '<polygon points="' + h + ',' + (s - 1) + ' ' + (s - 1) + ',1 1,1" fill="' + fill + '"/>'; break;
+            default:
+                svg += '<circle cx="' + h + '" cy="' + h + '" r="' + (h - 1) + '" fill="' + fill + '"/>'; break;
+        }
+        svg += '</svg>';
+        return svg;
+    }
+
+    function renderScatter(ledgerData) {
+        var container = document.getElementById('scatter');
+        if (!ledgerData || ledgerData.length === 0) {
+            container.innerHTML = '<p class="no-data">No data available</p>';
+            return;
+        }
+
+        // Parse CSV
+        var lines = ledgerData.trim().split('\n');
+        var headers = lines[0].split(',');
+        var modelIdx = headers.indexOf('model');
+        var expIdx = headers.indexOf('experiment');
+        var condIdx = headers.indexOf('condition');
+        var outcomeIdx = headers.indexOf('outcome');
+        if (modelIdx < 0 || expIdx < 0 || condIdx < 0 || outcomeIdx < 0) {
+            container.innerHTML = '<p class="no-data">Insufficient data for scatter plot</p>';
+            return;
+        }
+
+        // Aggregate: model x experiment -> { control: {pass, total}, treatment: {pass, total} }
+        var points = {};
+        for (var i = 1; i < lines.length; i++) {
+            var cols = lines[i].split(',');
+            if (cols.length <= Math.max(modelIdx, expIdx, condIdx, outcomeIdx)) continue;
+            var model = cols[modelIdx];
+            var exp = cols[expIdx];
+            var cond = cols[condIdx];
+            var outcome = cols[outcomeIdx];
+            var key = model + '::' + exp;
+            if (!points[key]) points[key] = { model: model, experiment: exp, control: { pass: 0, total: 0 }, treatment: { pass: 0, total: 0 } };
+            points[key][cond].total++;
+            if (outcome === 'PASS') points[key][cond].pass++;
+        }
+
+        // Convert to array, filter to points with both conditions
+        var data = [];
+        for (var k in points) {
+            var p = points[k];
+            if (p.control.total > 0 && p.treatment.total > 0) {
+                data.push({
+                    model: p.model,
+                    modelKey: getModelKey(p.model),
+                    experiment: p.experiment,
+                    tier: (EXP_META[p.experiment] || {}).tier || 'Other',
+                    controlRate: p.control.pass / p.control.total,
+                    treatmentRate: p.treatment.pass / p.treatment.total,
+                    n: Math.min(p.control.total, p.treatment.total)
+                });
+            }
+        }
+
+        if (data.length === 0) {
+            container.innerHTML = '<p class="no-data">Need both control and treatment data for scatter plot</p>';
+            return;
+        }
+
+        // Chart dimensions
+        var W = 560, H = 400;
+        var pad = { top: 20, right: 20, bottom: 45, left: 50 };
+        var plotW = W - pad.left - pad.right;
+        var plotH = H - pad.top - pad.bottom;
+
+        function xPos(v) { return pad.left + v * plotW; }
+        function yPos(v) { return pad.top + (1 - v) * plotH; }
+
+        var ns = 'http://www.w3.org/2000/svg';
+        var svg = document.createElementNS(ns, 'svg');
+        svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+        svg.setAttribute('width', '100%');
+        svg.style.maxWidth = W + 'px';
+
+        // Efficacy zone (above diagonal)
+        var zone = document.createElementNS(ns, 'polygon');
+        zone.setAttribute('points',
+            xPos(0) + ',' + yPos(0) + ' ' +
+            xPos(0) + ',' + yPos(1) + ' ' +
+            xPos(1) + ',' + yPos(1));
+        zone.setAttribute('fill', 'rgba(63, 185, 80, 0.04)');
+        svg.appendChild(zone);
+
+        // Overhead zone (below diagonal)
+        var zone2 = document.createElementNS(ns, 'polygon');
+        zone2.setAttribute('points',
+            xPos(0) + ',' + yPos(0) + ' ' +
+            xPos(1) + ',' + yPos(0) + ' ' +
+            xPos(1) + ',' + yPos(1));
+        zone2.setAttribute('fill', 'rgba(220, 38, 127, 0.03)');
+        svg.appendChild(zone2);
+
+        // Grid lines
+        var gridVals = [0.2, 0.4, 0.6, 0.8];
+        gridVals.forEach(function(v) {
+            var gl = document.createElementNS(ns, 'line');
+            gl.setAttribute('x1', xPos(v)); gl.setAttribute('y1', yPos(0));
+            gl.setAttribute('x2', xPos(v)); gl.setAttribute('y2', yPos(1));
+            gl.setAttribute('stroke', '#21262d'); gl.setAttribute('stroke-width', '0.5');
+            svg.appendChild(gl);
+            var gl2 = document.createElementNS(ns, 'line');
+            gl2.setAttribute('x1', xPos(0)); gl2.setAttribute('y1', yPos(v));
+            gl2.setAttribute('x2', xPos(1)); gl2.setAttribute('y2', yPos(v));
+            gl2.setAttribute('stroke', '#21262d'); gl2.setAttribute('stroke-width', '0.5');
+            svg.appendChild(gl2);
+        });
+
+        // Diagonal line (y = x, no effect)
+        var diag = document.createElementNS(ns, 'line');
+        diag.setAttribute('x1', xPos(0)); diag.setAttribute('y1', yPos(0));
+        diag.setAttribute('x2', xPos(1)); diag.setAttribute('y2', yPos(1));
+        diag.setAttribute('stroke', '#8b949e'); diag.setAttribute('stroke-width', '1');
+        diag.setAttribute('stroke-dasharray', '4,4');
+        svg.appendChild(diag);
+
+        // Axes
+        var xAxis = document.createElementNS(ns, 'line');
+        xAxis.setAttribute('x1', xPos(0)); xAxis.setAttribute('y1', yPos(0));
+        xAxis.setAttribute('x2', xPos(1)); xAxis.setAttribute('y2', yPos(0));
+        xAxis.setAttribute('stroke', '#21262d'); xAxis.setAttribute('stroke-width', '1');
+        svg.appendChild(xAxis);
+        var yAxis = document.createElementNS(ns, 'line');
+        yAxis.setAttribute('x1', xPos(0)); yAxis.setAttribute('y1', yPos(0));
+        yAxis.setAttribute('x2', xPos(0)); yAxis.setAttribute('y2', yPos(1));
+        yAxis.setAttribute('stroke', '#21262d'); yAxis.setAttribute('stroke-width', '1');
+        svg.appendChild(yAxis);
+
+        // Axis labels
+        var tickVals = [0, 0.2, 0.4, 0.6, 0.8, 1.0];
+        tickVals.forEach(function(v) {
+            var tx = document.createElementNS(ns, 'text');
+            tx.setAttribute('x', xPos(v));
+            tx.setAttribute('y', yPos(0) + 18);
+            tx.setAttribute('text-anchor', 'middle');
+            tx.setAttribute('fill', '#8b949e');
+            tx.setAttribute('font-size', '11');
+            tx.setAttribute('font-family', 'SF Mono, Menlo, monospace');
+            tx.textContent = Math.round(v * 100) + '%';
+            svg.appendChild(tx);
+
+            var ty = document.createElementNS(ns, 'text');
+            ty.setAttribute('x', xPos(0) - 8);
+            ty.setAttribute('y', yPos(v) + 4);
+            ty.setAttribute('text-anchor', 'end');
+            ty.setAttribute('fill', '#8b949e');
+            ty.setAttribute('font-size', '11');
+            ty.setAttribute('font-family', 'SF Mono, Menlo, monospace');
+            ty.textContent = Math.round(v * 100) + '%';
+            svg.appendChild(ty);
+        });
+
+        // Axis titles
+        var xTitle = document.createElementNS(ns, 'text');
+        xTitle.setAttribute('x', xPos(0.5));
+        xTitle.setAttribute('y', H - 4);
+        xTitle.setAttribute('text-anchor', 'middle');
+        xTitle.setAttribute('fill', '#8b949e');
+        xTitle.setAttribute('font-size', '12');
+        xTitle.setAttribute('font-family', '-apple-system, sans-serif');
+        xTitle.textContent = 'Control Completion Rate';
+        svg.appendChild(xTitle);
+
+        var yTitle = document.createElementNS(ns, 'text');
+        yTitle.setAttribute('x', 0);
+        yTitle.setAttribute('y', 0);
+        yTitle.setAttribute('text-anchor', 'middle');
+        yTitle.setAttribute('fill', '#8b949e');
+        yTitle.setAttribute('font-size', '12');
+        yTitle.setAttribute('font-family', '-apple-system, sans-serif');
+        yTitle.setAttribute('transform', 'translate(14,' + yPos(0.5) + ') rotate(-90)');
+        yTitle.textContent = 'Treatment Completion Rate';
+        svg.appendChild(yTitle);
+
+        // Zone labels
+        var efficacyLabel = document.createElementNS(ns, 'text');
+        efficacyLabel.setAttribute('x', xPos(0.15));
+        efficacyLabel.setAttribute('y', yPos(0.85));
+        efficacyLabel.setAttribute('fill', 'rgba(63, 185, 80, 0.35)');
+        efficacyLabel.setAttribute('font-size', '11');
+        efficacyLabel.setAttribute('font-family', '-apple-system, sans-serif');
+        efficacyLabel.setAttribute('font-weight', '600');
+        efficacyLabel.textContent = 'INTENT HELPS';
+        svg.appendChild(efficacyLabel);
+
+        var overheadLabel = document.createElementNS(ns, 'text');
+        overheadLabel.setAttribute('x', xPos(0.65));
+        overheadLabel.setAttribute('y', yPos(0.12));
+        overheadLabel.setAttribute('fill', 'rgba(220, 38, 127, 0.3)');
+        overheadLabel.setAttribute('font-size', '11');
+        overheadLabel.setAttribute('font-family', '-apple-system, sans-serif');
+        overheadLabel.setAttribute('font-weight', '600');
+        overheadLabel.textContent = 'INTENT HURTS';
+        svg.appendChild(overheadLabel);
+
+        // Plot data points
+        var modelsUsed = {};
+        var tiersUsed = {};
+        var POINT_R = 6;
+        var CONF_R_MIN = 10;
+        var CONF_R_MAX = 24;
+        data.forEach(function(d) {
+            var cx = xPos(d.controlRate);
+            var cy = yPos(d.treatmentRate);
+            var fill = TIER_COLORS[d.tier] || '#8b949e';
+            var shape = shapeForModel(d.modelKey);
+            var confidence = Math.min(d.n, 10) / 10;
+            var confRadius = CONF_R_MIN + confidence * (CONF_R_MAX - CONF_R_MIN);
+
+            modelsUsed[d.modelKey] = shape;
+            tiersUsed[d.tier] = fill;
+
+            // Confidence circle (translucent, behind the marker)
+            var confCircle = document.createElementNS(ns, 'circle');
+            confCircle.setAttribute('cx', cx);
+            confCircle.setAttribute('cy', cy);
+            confCircle.setAttribute('r', confRadius);
+            confCircle.setAttribute('fill', fill);
+            confCircle.setAttribute('fill-opacity', '0.12');
+            confCircle.setAttribute('stroke', fill);
+            confCircle.setAttribute('stroke-width', '1');
+            confCircle.setAttribute('stroke-opacity', '0.3');
+            svg.appendChild(confCircle);
+
+            // Shape marker (solid, uniform size)
+            var el = drawShape(svg, shape, cx, cy, POINT_R, fill, '#0d1117');
+            el.style.cursor = 'pointer';
+            el.setAttribute('opacity', '1');
+
+            // Tooltip via title
+            var title = document.createElementNS(ns, 'title');
+            title.textContent = d.experiment + ' (' + d.modelKey + ')\n' +
+                'Control: ' + Math.round(d.controlRate * 100) + '%, Treatment: ' + Math.round(d.treatmentRate * 100) + '%\n' +
+                'N=' + d.n;
+            el.appendChild(title);
+            svg.appendChild(el);
+
+            // Label near point
+            var label = document.createElementNS(ns, 'text');
+            label.setAttribute('x', cx + r + 4);
+            label.setAttribute('y', cy + 3);
+            label.setAttribute('fill', '#8b949e');
+            label.setAttribute('font-size', '10');
+            label.setAttribute('font-family', '-apple-system, sans-serif');
+            label.textContent = d.experiment;
+            svg.appendChild(label);
+        });
+
+        // Build legend
+        var wrap = document.createElement('div');
+        wrap.className = 'scatter-wrap';
+        wrap.appendChild(svg);
+
+        var legend = document.createElement('div');
+        legend.className = 'scatter-legend';
+
+        // Tier colors
+        for (var tier in tiersUsed) {
+            var item = document.createElement('span');
+            item.className = 'scatter-legend-item';
+            item.innerHTML = drawShapeSVG('circle', 12, tiersUsed[tier]) + ' ' + tier;
+            legend.appendChild(item);
+        }
+
+        // Divider
+        var sep = document.createElement('span');
+        sep.style.cssText = 'border-left:1px solid #21262d; height:12px; align-self:center;';
+        legend.appendChild(sep);
+
+        // Model shapes (use neutral grey)
+        for (var mk in modelsUsed) {
+            var mItem = document.createElement('span');
+            mItem.className = 'scatter-legend-item';
+            mItem.innerHTML = drawShapeSVG(modelsUsed[mk], 12, '#8b949e') + ' ' + mk;
+            legend.appendChild(mItem);
+        }
+
+        // Confidence note
+        var sizeNote = document.createElement('span');
+        sizeNote.className = 'scatter-legend-item';
+        sizeNote.style.color = '#8b949e';
+        sizeNote.innerHTML = drawShapeSVG('circle', 12, 'rgba(139,148,158,0.15)') + ' Ring = confidence (N/10)';
+        legend.appendChild(sizeNote);
+
+        wrap.appendChild(legend);
+        container.innerHTML = '';
+        container.appendChild(wrap);
+    }
+
     function renderGrid(experiments, ledgerData) {
         var tabsEl = document.getElementById('grid-tabs');
         var tableEl = document.getElementById('grid-table');
@@ -773,8 +1216,14 @@
 
             return fetch('summary.csv')
                 .then(function(r) { return r.text(); })
-                .then(function(csv) { renderGrid(experiments, csv); })
-                .catch(function() { renderGrid(experiments, null); });
+                .then(function(csv) {
+                    renderScatter(csv);
+                    renderGrid(experiments, csv);
+                })
+                .catch(function() {
+                    renderScatter(null);
+                    renderGrid(experiments, null);
+                });
         })
         .catch(function(err) {
             console.error('Failed to load analysis data:', err);
