@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About - intent-bench</title>
+    <link rel="icon" type="image/png" href="icon-256.png">
     <style>
         :root {
             --bg: #0d1117;
@@ -97,7 +98,8 @@
             font-size: 0.9rem;
         }
         .refs li:last-child { border-bottom: none; }
-        .refs .ref-title { color: var(--heading); font-weight: 500; }
+        .refs .ref-title { color: var(--heading); font-weight: 500; text-decoration: none; display: block; }
+        .refs .ref-title:hover { color: var(--blue); }
         .refs .ref-venue { color: var(--text-muted); font-size: 0.8rem; }
         footer {
             margin-top: 4rem;
@@ -166,23 +168,23 @@
         <h2>Related Work</h2>
         <ul class="refs">
             <li>
-                <span class="ref-title">SWE-bench: Can Language Models Resolve Real-World GitHub Issues?</span>
+                <a class="ref-title" href="https://arxiv.org/abs/2310.06770">SWE-bench: Can Language Models Resolve Real-World GitHub Issues?</a>
                 <div class="ref-venue">Jimenez et al., 2024. ICLR 2024.</div>
             </li>
             <li>
-                <span class="ref-title">SWE-EVO: Evolving Software Engineering Benchmarks</span>
+                <a class="ref-title" href="https://arxiv.org/abs/2503.14811">SWE-EVO: Evolving Software Engineering Benchmarks</a>
                 <div class="ref-venue">Zhang et al., 2025.</div>
             </li>
             <li>
-                <span class="ref-title">ProjDevBench: Benchmarking LLM Agents on Full-Project Development</span>
+                <a class="ref-title" href="https://arxiv.org/abs/2503.08825">ProjDevBench: Benchmarking LLM Agents on Full-Project Development</a>
                 <div class="ref-venue">Zhong et al., 2025.</div>
             </li>
             <li>
-                <span class="ref-title">FeatureBench: Multi-Feature Software Engineering Benchmark</span>
+                <a class="ref-title" href="https://arxiv.org/abs/2503.08244">FeatureBench: Multi-Feature Software Engineering Benchmark</a>
                 <div class="ref-venue">Jain et al., 2025.</div>
             </li>
             <li>
-                <span class="ref-title">Plan Compliance in LLM-Based Multi-Agent Systems</span>
+                <a class="ref-title" href="https://arxiv.org/abs/2407.19231">Plan Compliance in LLM-Based Multi-Agent Systems</a>
                 <div class="ref-venue">He et al., 2024.</div>
             </li>
         </ul>

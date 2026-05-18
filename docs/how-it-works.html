@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>How It Works - intent-bench</title>
+    <link rel="icon" type="image/png" href="icon-256.png">
     <style>
         :root {
             --bg: #0d1117;
@@ -129,6 +130,7 @@
             font-size: 0.8rem;
             color: var(--text-muted);
             line-height: 1.8;
+            white-space: pre;
             overflow-x: auto;
         }
         footer {
@@ -183,8 +185,7 @@
         </div>
 
         <h2>Execution Flow</h2>
-        <div class="diagram">
-bench.sh run &lt;experiment&gt; --condition &lt;control|treatment&gt;
+        <pre class="diagram">bench.sh run &lt;experiment&gt; --condition &lt;control|treatment&gt;
   |
   +-- setup_workdir()
   |     +-- clone repo (if brownfield)
@@ -199,7 +200,7 @@ bench.sh run &lt;experiment&gt; --condition &lt;control|treatment&gt;
   |     +-- compute knowledge entropy score
   |     +-- append row to results/summary.csv
   |
-  +-- repeat for N runs per condition</div>
+  +-- repeat for N runs per condition</pre>
 
         <h2>What We Measure</h2>
 
