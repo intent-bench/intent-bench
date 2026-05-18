@@ -1,7 +1,7 @@
 {
   "meta": {
-    "input_hash": "b75492a1e41d80945ee717ff355b3dde7d516abc908665438e5521bf5d85709e",
-    "generated_at": "2026-05-18T13:32:51.704270+00:00",
+    "input_hash": "fec8868b9240dbcee42029bf374a20c1fb60de3bd8ade50bd583953cc20756c7",
+    "generated_at": "2026-05-18T17:18:39.399697+00:00",
     "ledger": "results/summary.csv",
     "score_versions": [
       1
@@ -88,7 +88,7 @@
       "mann_whitney": {
         "u_statistic": 0.0,
         "p_value": 0.0159,
-        "significant": "True"
+        "significant": true
       },
       "completion_significance": {
         "fisher_p": 1.0,
@@ -121,7 +121,7 @@
         "control": {
           "mean": 4427685.0,
           "median": 4427685.0,
-          "std": NaN,
+          "std": 0,
           "n": 1
         },
         "treatment": {
@@ -135,7 +135,7 @@
         "control": {
           "mean": 76.0,
           "median": 76.0,
-          "std": NaN,
+          "std": 0,
           "n": 1
         },
         "treatment": {
@@ -149,7 +149,7 @@
         "control": {
           "mean": 0.0,
           "median": 0.0,
-          "std": NaN,
+          "std": 0,
           "n": 1
         },
         "treatment": {
@@ -187,11 +187,11 @@
       "mann_whitney": {
         "u_statistic": 2.0,
         "p_value": 1.0,
-        "significant": "False"
+        "significant": false
       },
       "completion_significance": {
         "fisher_p": 0.2063,
-        "significant": "False"
+        "significant": false
       },
       "backtrack_rate_control": 0.0,
       "backtrack_rate_treatment": 0.017,
