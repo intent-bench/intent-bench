@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - intent-bench</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --border: #21262d;
+            --text: #c9d1d9;
+            --text-muted: #8b949e;
+            --heading: #f0f6fc;
+            --blue: #648FFF;
+            --purple: #785EF0;
+            --magenta: #DC267F;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        body::before {
+            content: '';
+            display: block;
+            height: 3px;
+            background: linear-gradient(90deg, var(--blue), var(--purple), var(--magenta));
+        }
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+        }
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+            font-size: 0.85rem;
+        }
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+        nav a:hover { color: var(--heading); }
+        nav .home {
+            font-weight: 700;
+            color: var(--heading);
+            font-size: 1rem;
+        }
+        h1 {
+            color: var(--heading);
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+        .lead {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 2.5rem;
+        }
+        h2 {
+            color: var(--heading);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 2.5rem 0 0.75rem;
+        }
+        p { margin-bottom: 1rem; }
+        a { color: var(--blue); }
+        a:hover { color: var(--heading); }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .card h3 {
+            color: var(--heading);
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .card p { margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .card p:last-child { margin-bottom: 0; }
+        .refs {
+            list-style: none;
+            margin: 1rem 0;
+        }
+        .refs li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        .refs li:last-child { border-bottom: none; }
+        .refs .ref-title { color: var(--heading); font-weight: 500; }
+        .refs .ref-venue { color: var(--text-muted); font-size: 0.8rem; }
+        footer {
+            margin-top: 4rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        footer a { color: var(--text-muted); text-decoration: none; }
+        footer a:hover { color: var(--heading); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a class="home" href="./">ib</a>
+            <a href="./how-it-works.html">How It Works</a>
+            <a href="./how-to-use.html">How to Use</a>
+            <a href="./about.html">About</a>
+            <a href="./contact.html">Contact</a>
+        </nav>
+
+        <h1>About</h1>
+        <p class="lead">intent-bench is an open-source benchmark for evaluating
+           whether structured intent improves AI coding agent effectiveness.</p>
+
+        <h2>Motivation</h2>
+        <p>Existing coding benchmarks (HumanEval, SWE-bench, MBPP) measure raw
+           code generation ability. They ask: "Can the model write correct code?"
+           But in real software engineering, the hard part is not writing code --
+           it is understanding what to build, in what order, and how the pieces
+           fit together.</p>
+        <p>intent-bench asks a different question: <strong>Does providing structured
+           requirements to a coding agent improve its implementation effectiveness?</strong>
+           The answer has implications for how engineering teams should work with
+           AI agents -- whether investing in requirement specification pays off
+           in better outcomes.</p>
+
+        <h2>How It Differs</h2>
+
+        <div class="card">
+            <h3>A/B Design, Not Leaderboard</h3>
+            <p>Most benchmarks rank models against a fixed task set. intent-bench
+               compares two conditions (with and without structured intent) on the
+               same model. The question is not "which model is best" but "does
+               this practice help."</p>
+        </div>
+
+        <div class="card">
+            <h3>Real Codebases, Not Puzzles</h3>
+            <p>Advanced experiments use real open-source projects (go-toml, hyperfine,
+               csvkit, go-yaml, structlog) at pinned commits with real closed issues
+               as tasks. This measures brownfield effectiveness, not just greenfield
+               generation.</p>
+        </div>
+
+        <div class="card">
+            <h3>Multi-Dimensional Metrics</h3>
+            <p>Beyond pass/fail, intent-bench measures token efficiency (cost),
+               knowledge entropy (thrashing), planning-to-execution ratio, and
+               outcome variance across runs. These capture the how, not just
+               the what.</p>
+        </div>
+
+        <h2>Related Work</h2>
+        <ul class="refs">
+            <li>
+                <span class="ref-title">SWE-bench: Can Language Models Resolve Real-World GitHub Issues?</span>
+                <div class="ref-venue">Jimenez et al., 2024. ICLR 2024.</div>
+            </li>
+            <li>
+                <span class="ref-title">SWE-EVO: Evolving Software Engineering Benchmarks</span>
+                <div class="ref-venue">Zhang et al., 2025.</div>
+            </li>
+            <li>
+                <span class="ref-title">ProjDevBench: Benchmarking LLM Agents on Full-Project Development</span>
+                <div class="ref-venue">Zhong et al., 2025.</div>
+            </li>
+            <li>
+                <span class="ref-title">FeatureBench: Multi-Feature Software Engineering Benchmark</span>
+                <div class="ref-venue">Jain et al., 2025.</div>
+            </li>
+            <li>
+                <span class="ref-title">Plan Compliance in LLM-Based Multi-Agent Systems</span>
+                <div class="ref-venue">He et al., 2024.</div>
+            </li>
+        </ul>
+
+        <h2>License</h2>
+        <p>intent-bench is released under the
+           <a href="https://github.com/intent-bench/intent-bench/blob/main/LICENSE">Apache License 2.0</a>.
+           Contributions are welcome.</p>
+
+        <footer>
+            <a href="https://github.com/intent-bench/intent-bench">GitHub</a>
+            &middot; Apache 2.0
+        </footer>
+    </div>
+</body>
+</html>

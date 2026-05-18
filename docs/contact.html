@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - intent-bench</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --border: #21262d;
+            --text: #c9d1d9;
+            --text-muted: #8b949e;
+            --heading: #f0f6fc;
+            --blue: #648FFF;
+            --purple: #785EF0;
+            --magenta: #DC267F;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        body::before {
+            content: '';
+            display: block;
+            height: 3px;
+            background: linear-gradient(90deg, var(--blue), var(--purple), var(--magenta));
+        }
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+        }
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+            font-size: 0.85rem;
+        }
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+        nav a:hover { color: var(--heading); }
+        nav .home {
+            font-weight: 700;
+            color: var(--heading);
+            font-size: 1rem;
+        }
+        h1 {
+            color: var(--heading);
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+        .lead {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 2.5rem;
+        }
+        p { margin-bottom: 1rem; }
+        a { color: var(--blue); }
+        a:hover { color: var(--heading); }
+        .channels {
+            display: grid;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        .channel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: inherit;
+            transition: border-color 0.15s;
+        }
+        .channel:hover {
+            border-color: var(--blue);
+            text-decoration: none;
+        }
+        .channel h3 {
+            color: var(--heading);
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        .channel p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .channel .link {
+            display: block;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--blue);
+            font-family: 'SF Mono', 'Menlo', monospace;
+        }
+        footer {
+            margin-top: 4rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        footer a { color: var(--text-muted); text-decoration: none; }
+        footer a:hover { color: var(--heading); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a class="home" href="./">ib</a>
+            <a href="./how-it-works.html">How It Works</a>
+            <a href="./how-to-use.html">How to Use</a>
+            <a href="./about.html">About</a>
+            <a href="./contact.html">Contact</a>
+        </nav>
+
+        <h1>Contact</h1>
+        <p class="lead">Questions, feedback, or want to contribute? Reach out.</p>
+
+        <div class="channels">
+            <a class="channel" href="https://github.com/intent-bench/intent-bench/discussions">
+                <h3>GitHub Discussions</h3>
+                <p>Ask questions, share results, or discuss methodology.</p>
+                <span class="link">github.com/intent-bench/intent-bench/discussions</span>
+            </a>
+
+            <a class="channel" href="https://github.com/intent-bench/intent-bench/issues">
+                <h3>GitHub Issues</h3>
+                <p>Report bugs, request experiments, or suggest improvements.</p>
+                <span class="link">github.com/intent-bench/intent-bench/issues</span>
+            </a>
+
+            <a class="channel" href="https://github.com/intent-bench/intent-bench/pulls">
+                <h3>Pull Requests</h3>
+                <p>Submit benchmark results, new experiments, or agent wrappers.</p>
+                <span class="link">github.com/intent-bench/intent-bench/pulls</span>
+            </a>
+
+            <a class="channel" href="mailto:dev@rtmx.ai">
+                <h3>Email</h3>
+                <p>For research collaboration or private inquiries.</p>
+                <span class="link">dev@rtmx.ai</span>
+            </a>
+        </div>
+
+        <footer>
+            <a href="https://github.com/intent-bench/intent-bench">GitHub</a>
+            &middot; Apache 2.0
+        </footer>
+    </div>
+</body>
+</html>
