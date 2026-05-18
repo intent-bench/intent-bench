@@ -15,8 +15,12 @@ import pandas as pd
 from scipy import stats
 
 
-def load_ledger(path: str = "results/summary.csv") -> pd.DataFrame:
-    """Load and validate the experiment ledger."""
+def load_ledger(path: str = "results/summary.csv", score_version: str = None) -> pd.DataFrame:
+    """Load and validate the experiment ledger.
+
+    If score_version is None (default), filter to the latest score_version.
+    If score_version is "all", return all rows regardless of version.
+    """
     df = pd.read_csv(path)
     required = [
         "experiment",
@@ -35,6 +39,12 @@ def load_ledger(path: str = "results/summary.csv") -> pd.DataFrame:
     if missing:
         print(f"ERROR: Missing columns: {missing}", file=sys.stderr)
         sys.exit(1)
+    if "score_version" in df.columns and score_version != "all":
+        if score_version is not None:
+            df = df[df["score_version"].astype(str) == str(score_version)]
+        else:
+            latest = df["score_version"].max()
+            df = df[df["score_version"] == latest]
     return df
 
 
@@ -284,7 +294,8 @@ def check_cache(output_path: Path, input_hash: str) -> bool:
 
 def main():
     force = "--force" in sys.argv
-    args = [a for a in sys.argv[1:] if a != "--force"]
+    all_versions = "--all-versions" in sys.argv
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
     ledger_path = args[0] if args else "results/summary.csv"
 
     if not Path(ledger_path).exists():
@@ -298,7 +309,8 @@ def main():
         print("Analysis unchanged, skipping.")
         sys.exit(0)
 
-    df = load_ledger(ledger_path)
+    sv = "all" if all_versions else None
+    df = load_ledger(ledger_path, score_version=sv)
 
     if len(df) == 0:
         print("No experiment data to analyze.")
@@ -309,11 +321,13 @@ def main():
 
     print_report(results)
 
+    score_versions = sorted(df["score_version"].unique().tolist()) if "score_version" in df.columns else []
     output = {
         "meta": {
             "input_hash": input_hash,
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "ledger": ledger_path,
+            "score_versions": score_versions,
         },
         "experiments": results,
     }

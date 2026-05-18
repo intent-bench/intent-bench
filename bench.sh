@@ -287,7 +287,8 @@ execute_run() {
         "$turns" "$backtracks" "$tool_calls_intent" "$tool_calls_other" \
         "$outcome" "$tests_total" "$tests_passed" "$tests_failed" \
         "$wall_clock" "$knowledge_entropy" \
-        "results/raw/$experiment/$condition/$session_id"
+        "results/raw/$experiment/$condition/$session_id" \
+        "$SCORE_VERSION"
 
     # Preserve workdir for inspection
     rsync -a --exclude='node_modules' --exclude='.venv' --exclude='venv' \
