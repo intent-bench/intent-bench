@@ -1,6 +1,6 @@
 # Subject Selection Criteria
 
-This document defines what qualifies as a valid rtmx-bench experiment.
+This document defines what qualifies as a valid intent-bench experiment.
 All experiments must meet these criteria to produce credible, reproducible
 results. The criteria exist to prevent cherry-picking and ensure that
 positive or negative findings reflect genuine signal.
@@ -14,21 +14,23 @@ This classification determines how results are interpreted.
 
 - Fewer than 8 requirements
 - Dependency depth less than 3 levels
-- Purpose: measure the cost of RTMX tool interaction overhead
-- Example: url-shortener (5 requirements, depth 1)
-- Interpretation: RTMX is expected to add overhead here. If it does not,
-  that is a surprising positive result. If it does, that is the expected
-  cost of structured planning on a trivially-sized task.
+- Purpose: measure the cost of intent layer interaction overhead
+- Example: url-shortener (10 requirements, depth 2)
+- Interpretation: the intent layer is expected to add overhead here. If it
+  does not, that is a surprising positive result. If it does, that is the
+  expected cost of structured planning on a trivially-sized task.
 
 ### Standard (primary efficacy measurement)
 
 - 8 to 20 requirements
 - Dependency depth 3 to 5 levels
 - At least 2 cross-cutting concerns (e.g., auth + validation + logging)
-- Purpose: measure whether RTMX improves completion rate and reduces
-  outcome variability on tasks complex enough to cause agent thrashing
-- Example: task-manager (15 requirements, depth 5, 6 entities)
-- Interpretation: this is the target complexity for RTMX value claims.
+- Purpose: measure whether structured intent improves completion rate and
+  reduces outcome variability on tasks complex enough to cause agent thrashing
+- Examples: task-manager (13 requirements, depth 5, 6 entities),
+  rest-api (13 requirements, auth x RBAC x validation),
+  cli-tool (14 requirements, subcommands + config + output formats)
+- Interpretation: this is the target complexity for intent layer efficacy claims.
 
 ### Advanced (stress test)
 
@@ -97,7 +99,7 @@ An experiment is invalid if any of the following apply:
 
 ## Result Reporting Standards
 
-When publishing results from rtmx-bench:
+When publishing results from intent-bench:
 
 1. **Report both positive and negative findings.** If RTMX adds overhead
    on baseline experiments, report that alongside efficacy on standard

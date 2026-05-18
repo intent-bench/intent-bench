@@ -1,0 +1,13 @@
+name: brownfield
+description: >
+  Brownfield experiment where an agent modifies an unfamiliar existing
+  Go codebase (zserge/zs static site generator). Three tasks of
+  increasing complexity test whether structured intent reduces
+  exploration overhead on existing codebases.
+repo: https://github.com/zserge/zs.git
+commit_sha: 4900afa45db4d9254110f2eabcac6cfd606423b6
+treatment: rtmx
+agent: claude-code
+max_budget_usd: "15.00"
+test_command: go test ./...
+setup_command: go mod download
