@@ -1,0 +1,12 @@
+name: hyperfine
+description: >
+  Brownfield experiment on sharkdp/hyperfine, a Rust command-line
+  benchmarking tool. Two bug fixes in outlier detection and time unit
+  display, plus a feature addition for geometric mean analysis.
+repo: https://github.com/sharkdp/hyperfine.git
+commit_sha: 975fe108c4ee7bd2600d10758207b44ca3dae738
+treatment: rtmx
+agent: claude-code
+max_budget_usd: "15.00"
+test_command: cargo test
+setup_command: cargo fetch

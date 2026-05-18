@@ -1,0 +1,12 @@
+name: structlog
+description: >
+  Brownfield experiment on hynek/structlog, a Python structured
+  logging library. A mutation bug in ConsoleRenderer, a filtered
+  log interpolation error, and a race condition in contextvars.
+repo: https://github.com/hynek/structlog.git
+commit_sha: c0ef9e09e7a536cae65e33c1ac1c8b4e6a6f7511
+treatment: rtmx
+agent: claude-code
+max_budget_usd: "10.00"
+test_command: python -m pytest tests/
+setup_command: pip install -e '.[dev]'

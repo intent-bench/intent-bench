@@ -378,7 +378,12 @@
         'rest-api':      { tier: 'Standard', reqs: 13, depth: 4 },
         'cli-tool':      { tier: 'Standard', reqs: 14, depth: 3 },
         'brownfield':    { tier: 'Advanced', reqs: 9,  depth: 3 },
-        'rtmx-self':     { tier: 'Advanced', reqs: 7,  depth: 3 }
+        'rtmx-self':     { tier: 'Advanced', reqs: 7,  depth: 3 },
+        'go-toml':       { tier: 'Advanced', reqs: 4,  depth: 2 },
+        'hyperfine':     { tier: 'Advanced', reqs: 5,  depth: 3 },
+        'csvkit':        { tier: 'Advanced', reqs: 4,  depth: 2 },
+        'go-yaml':       { tier: 'Advanced', reqs: 4,  depth: 2 },
+        'structlog':     { tier: 'Advanced', reqs: 4,  depth: 3 }
     };
 
     const TIER_ORDER = ['Baseline', 'Standard', 'Advanced'];
@@ -665,14 +670,10 @@
         container.innerHTML = html;
     }
 
-    // Load data and render
-    var basePath = '';
-    // Detect if served from /docs/ or root
-    if (window.location.pathname.indexOf('/docs/') >= 0) {
-        basePath = '../';
-    }
-
-    fetch(basePath + 'results/analysis.json')
+    // Load data and render.
+    // Data files are copied into docs/ by 'make analyze' so they are
+    // accessible when served via GitHub Pages (which only serves /docs).
+    fetch('analysis.json')
         .then(function(r) { return r.json(); })
         .then(function(data) {
             var experiments = data.experiments || [];
@@ -682,7 +683,7 @@
             renderConfig(data.meta, experiments);
 
             // Try loading ledger CSV for model grid
-            return fetch(basePath + 'results/summary.csv')
+            return fetch('summary.csv')
                 .then(function(r) { return r.text(); })
                 .then(function(csv) { renderGrid(experiments, csv); })
                 .catch(function() { renderGrid(experiments, null); });

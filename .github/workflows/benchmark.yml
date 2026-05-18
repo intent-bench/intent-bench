@@ -14,6 +14,11 @@ on:
           - cli-tool
           - brownfield
           - rtmx-self
+          - go-toml
+          - hyperfine
+          - csvkit
+          - go-yaml
+          - structlog
       condition:
         description: "Condition to run"
         required: true

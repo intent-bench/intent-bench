@@ -46,9 +46,11 @@ run-all:
 		bash bench.sh run "$$name" --condition treatment --runs 5; \
 	done
 
-# Statistical analysis
+# Statistical analysis (copies output into docs/ for GitHub Pages)
 analyze:
 	python3 analysis/compare.py results/summary.csv
+	cp results/analysis.json docs/analysis.json
+	cp results/summary.csv docs/summary.csv
 
 # Generate charts
 charts:

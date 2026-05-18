@@ -1,0 +1,12 @@
+name: go-toml
+description: >
+  Brownfield experiment on pelletier/go-toml, a widely-used Go TOML
+  parser/encoder. Three bug fixes requiring deep understanding of the
+  decoder, encoder, and type-checking paths.
+repo: https://github.com/pelletier/go-toml.git
+commit_sha: f85c4e8142d63f3c193f84ecfbf4b99104a1c95f
+treatment: rtmx
+agent: claude-code
+max_budget_usd: "15.00"
+test_command: go test ./...
+setup_command: go mod download
