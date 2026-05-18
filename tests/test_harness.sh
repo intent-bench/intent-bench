@@ -37,7 +37,7 @@ trap 'rm -rf "$tmpdir"' EXIT
 bash "$REPO_DIR/lib/csv.sh" init "$tmpdir/test.csv"
 header=$(head -1 "$tmpdir/test.csv")
 col_count=$(echo "$header" | awk -F, '{print NF}')
-assert_eq "ledger init creates 26-column header" "26" "$col_count"
+assert_eq "ledger init creates 27-column header" "27" "$col_count"
 
 # Validate empty ledger
 assert_exit "empty ledger validates" 0 bash "$REPO_DIR/lib/csv.sh" validate "$tmpdir/test.csv"
@@ -49,6 +49,8 @@ fifth_col=$(echo "$header" | cut -d, -f5)
 assert_eq "fifth column is treatment" "treatment" "$fifth_col"
 sixth_col=$(echo "$header" | cut -d, -f6)
 assert_eq "sixth column is agent" "agent" "$sixth_col"
+last_col=$(echo "$header" | awk -F, '{print $NF}')
+assert_eq "last column is score_version" "score_version" "$last_col"
 
 echo ""
 

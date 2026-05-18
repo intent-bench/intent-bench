@@ -1,8 +1,11 @@
 {
   "meta": {
-    "input_hash": "03c4e0f0e178493877c35bdbb0a55a7554738e77d97aad0c0b037973629d8d1d",
-    "generated_at": "2026-05-17T02:07:29.282400+00:00",
-    "ledger": "results/summary.csv"
+    "input_hash": "b75492a1e41d80945ee717ff355b3dde7d516abc908665438e5521bf5d85709e",
+    "generated_at": "2026-05-18T13:32:51.704270+00:00",
+    "ledger": "results/summary.csv",
+    "score_versions": [
+      1
+    ]
   },
   "experiments": [
     {

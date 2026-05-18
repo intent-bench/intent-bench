@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
 # csv.sh -- Ledger row construction and validation for intent-bench
-# Schema: 26-column CSV recording all experiment run data
+# Schema: 27-column CSV recording all experiment run data
 set -euo pipefail
+
+# Current scoring methodology version. Bump when scoring logic changes:
+# - Test detection (PASS/PARTIAL/FAIL classification)
+# - Token attribution (tool_tokens counting)
+# - Entropy calculation
+# - New metrics added to analysis
+# Do NOT bump for: chart styling, report formatting, CI config.
+SCORE_VERSION="1"
 
 LEDGER_COLUMNS=(
     session_id
@@ -30,6 +38,7 @@ LEDGER_COLUMNS=(
     wall_clock_seconds
     knowledge_entropy
     transcript_path
+    score_version
 )
 
 LEDGER_HEADER=$(IFS=,; echo "${LEDGER_COLUMNS[*]}")
