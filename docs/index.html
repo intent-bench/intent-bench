@@ -311,10 +311,35 @@
             box-shadow: 0 0 0 5px rgba(120, 94, 240, 0.45);
             text-decoration: none;
         }
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            font-size: 0.85rem;
+        }
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+        nav a:hover { color: var(--heading); }
+        nav .home {
+            font-weight: 700;
+            color: var(--heading);
+            font-size: 1rem;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <nav>
+            <a class="home" href="./">ib</a>
+            <a href="./how-it-works.html">How It Works</a>
+            <a href="./how-to-use.html">How to Use</a>
+            <a href="./about.html">About</a>
+            <a href="./contact.html">Contact</a>
+        </nav>
+
         <header>
             <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
                 <defs>
