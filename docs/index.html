@@ -1024,10 +1024,17 @@
             el.appendChild(title);
             svg.appendChild(el);
 
-            // Label: experiment name + confidence value
+            // Label placement: flip to left side when near right edge
+            var rightEdge = W - pad.right;
+            var flipLabel = cx > rightEdge - 120;
+            var labelX = flipLabel ? cx - POINT_R - 4 : cx + POINT_R + 4;
+            var labelAnchor = flipLabel ? 'end' : 'start';
+
+            // Line 1: experiment name
             var label = document.createElementNS(ns, 'text');
-            label.setAttribute('x', cx + POINT_R + 4);
-            label.setAttribute('y', cy - 2);
+            label.setAttribute('x', labelX);
+            label.setAttribute('y', cy - 6);
+            label.setAttribute('text-anchor', labelAnchor);
             label.setAttribute('fill', '#c9d1d9');
             label.setAttribute('font-size', '11');
             label.setAttribute('font-family', '-apple-system, sans-serif');
@@ -1035,13 +1042,15 @@
             label.textContent = d.experiment;
             svg.appendChild(label);
 
+            // Line 2: N and Fisher p
             var confLabel = document.createElementNS(ns, 'text');
-            confLabel.setAttribute('x', cx + POINT_R + 4);
-            confLabel.setAttribute('y', cy + 11);
+            confLabel.setAttribute('x', labelX);
+            confLabel.setAttribute('y', cy + 7);
+            confLabel.setAttribute('text-anchor', labelAnchor);
             confLabel.setAttribute('fill', '#8b949e');
             confLabel.setAttribute('font-size', '10');
             confLabel.setAttribute('font-family', 'SF Mono, Menlo, monospace');
-            confLabel.textContent = 'p=' + (1 - d.confidence).toFixed(3);
+            confLabel.textContent = 'N=' + d.n + '  p=' + (1 - d.confidence).toFixed(3);
             svg.appendChild(confLabel);
         });
 
