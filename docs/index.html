@@ -15,6 +15,8 @@
             --blue: #648FFF;
             --purple: #785EF0;
             --magenta: #DC267F;
+            --green: #3fb950;
+            --yellow: #d29922;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -23,22 +25,17 @@
             color: var(--text);
             line-height: 1.6;
         }
-
-        /* Gradient accent line at top */
         body::before {
             content: '';
             display: block;
             height: 3px;
             background: linear-gradient(90deg, var(--blue), var(--purple), var(--magenta));
         }
-
         .container {
-            max-width: 720px;
+            max-width: 860px;
             margin: 0 auto;
             padding: 3rem 1.5rem;
         }
-
-        /* Header */
         header {
             text-align: center;
             margin-bottom: 3rem;
@@ -59,8 +56,6 @@
             color: var(--text-muted);
             font-size: 0.95rem;
         }
-
-        /* Section headings */
         h2 {
             color: var(--text-muted);
             font-size: 0.75rem;
@@ -69,8 +64,6 @@
             letter-spacing: 0.08em;
             margin: 2.5rem 0 1rem;
         }
-
-        /* Description */
         .desc {
             font-size: 1.05rem;
             color: var(--text);
@@ -80,8 +73,6 @@
             margin-right: auto;
             text-align: center;
         }
-
-        /* Legend */
         .legend {
             display: flex;
             justify-content: center;
@@ -95,10 +86,24 @@
         .dot-c { background: var(--blue); }
         .dot-t { background: var(--magenta); }
 
+        /* Tier groups */
+        .tier {
+            margin-bottom: 1.5rem;
+        }
+        .tier-label {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.75rem;
+            padding-left: 0.25rem;
+        }
+
         /* Experiment cards */
         .experiments {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 1rem;
         }
         .exp {
@@ -118,8 +123,6 @@
             font-size: 0.8rem;
             margin-bottom: 1rem;
         }
-
-        /* Bars */
         .bar-row {
             display: flex;
             align-items: center;
@@ -150,8 +153,6 @@
         }
         .bar-c { background: var(--blue); }
         .bar-t { background: var(--magenta); }
-
-        /* Stats row */
         .stats {
             display: flex;
             gap: 1rem;
@@ -159,9 +160,7 @@
             padding-top: 0.75rem;
             border-top: 1px solid var(--border);
         }
-        .stat {
-            flex: 1;
-        }
+        .stat { flex: 1; }
         .stat-label {
             font-size: 0.7rem;
             color: var(--text-muted);
@@ -174,8 +173,6 @@
             font-family: 'SF Mono', 'Menlo', monospace;
             color: var(--heading);
         }
-
-        /* Note */
         .note {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -186,8 +183,14 @@
             color: var(--text-muted);
             line-height: 1.7;
         }
+        .no-data {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            padding: 1rem;
+        }
 
-        /* Data table */
+        /* Grid table */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -223,8 +226,51 @@
         .tag-t { background: rgba(220, 38, 127, 0.12); color: var(--magenta); }
         .pass { color: #3fb950; }
         .fail { color: var(--magenta); }
+        .muted { color: var(--text-muted); }
 
-        /* Footer */
+        /* Heatmap cell */
+        .cell-pass {
+            color: var(--green);
+            font-weight: 600;
+        }
+        .cell-fail {
+            color: var(--magenta);
+        }
+        .cell-na {
+            color: var(--text-muted);
+            font-style: italic;
+            font-family: -apple-system, sans-serif;
+        }
+        .cell-delta-pos {
+            color: var(--green);
+            font-size: 0.75rem;
+        }
+        .cell-delta-neg {
+            color: var(--magenta);
+            font-size: 0.75rem;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .tab {
+            padding: 0.3rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            cursor: pointer;
+        }
+        .tab:hover { color: var(--heading); }
+        .tab.active {
+            color: var(--heading);
+            background: var(--border);
+        }
+
         footer {
             margin-top: 3rem;
             padding-top: 1.5rem;
@@ -240,8 +286,6 @@
             outline-offset: 2px;
             border-radius: 4px;
         }
-
-        /* Contribute section */
         .contribute {
             text-align: center;
             margin-top: 2rem;
@@ -299,133 +343,19 @@
         </div>
 
         <h2>Completion Rate</h2>
+        <div id="completion-cards"></div>
 
-        <div class="experiments">
-            <div class="exp">
-                <div class="exp-name">url-shortener</div>
-                <div class="exp-meta">Baseline / 10 requirements / depth 2</div>
-                <div class="bar-row">
-                    <span class="bar-label">Control</span>
-                    <div class="bar-track">
-                        <div class="bar-fill bar-c" style="width: 100%">100%</div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <span class="bar-label">Treatment</span>
-                    <div class="bar-track">
-                        <div class="bar-fill bar-t" style="width: 80%">80%</div>
-                    </div>
-                </div>
-                <div class="stats">
-                    <div class="stat">
-                        <div class="stat-label">N</div>
-                        <div class="stat-value">5</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-label">Fisher p</div>
-                        <div class="stat-value">1.000</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-label">Verdict</div>
-                        <div class="stat-value" style="color: var(--text-muted)">overhead</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="exp">
-                <div class="exp-name">task-manager</div>
-                <div class="exp-meta">Standard / 13 requirements / depth 5</div>
-                <div class="bar-row">
-                    <span class="bar-label">Control</span>
-                    <div class="bar-track">
-                        <div class="bar-fill bar-c" style="width: 20%">20%</div>
-                    </div>
-                </div>
-                <div class="bar-row">
-                    <span class="bar-label">Treatment</span>
-                    <div class="bar-track">
-                        <div class="bar-fill bar-t" style="width: 80%">80%</div>
-                    </div>
-                </div>
-                <div class="stats">
-                    <div class="stat">
-                        <div class="stat-label">N</div>
-                        <div class="stat-value">5</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-label">Fisher p</div>
-                        <div class="stat-value">0.206</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-label">Verdict</div>
-                        <div class="stat-value pass">efficacy</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="note">
-            On the baseline task, the intent layer adds overhead without improving
-            completion. On the standard task, completion increases from 20% to 80%.
-            The mechanism: structured requirements prevent the thrashing loops that
-            cause agents to fail on complex dependency chains.
-        </div>
+        <div id="analysis-note" class="note" style="display:none"></div>
 
         <h2>Token Efficiency</h2>
+        <div id="token-table"></div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Experiment</th>
-                    <th>Condition</th>
-                    <th>Mean Tokens</th>
-                    <th>CV</th>
-                    <th>Pass</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>url-shortener</td>
-                    <td><span class="tag tag-c">control</span></td>
-                    <td>1,030,606</td>
-                    <td>0.458</td>
-                    <td class="pass">5/5</td>
-                </tr>
-                <tr>
-                    <td>url-shortener</td>
-                    <td><span class="tag tag-t">treatment</span></td>
-                    <td>2,220,736</td>
-                    <td>0.314</td>
-                    <td class="pass">4/5</td>
-                </tr>
-                <tr>
-                    <td>task-manager</td>
-                    <td><span class="tag tag-c">control</span></td>
-                    <td>4,427,685</td>
-                    <td>&mdash;</td>
-                    <td class="fail">1/5</td>
-                </tr>
-                <tr>
-                    <td>task-manager</td>
-                    <td><span class="tag tag-t">treatment</span></td>
-                    <td>3,636,346</td>
-                    <td>0.455</td>
-                    <td class="pass">4/5</td>
-                </tr>
-            </tbody>
-        </table>
+        <h2>Model &times; Experiment Grid</h2>
+        <div id="grid-tabs" class="tabs"></div>
+        <div id="grid-table"></div>
 
         <h2>Configuration</h2>
-
-        <table>
-            <tbody>
-                <tr><td>Agent</td><td>Claude Code</td></tr>
-                <tr><td>Model</td><td>claude-sonnet-4-20250514</td></tr>
-                <tr><td>Treatment</td><td>RTMX (MCP server + requirements DB)</td></tr>
-                <tr><td>N per condition</td><td>5</td></tr>
-                <tr><td>Date</td><td>2026-05-16</td></tr>
-            </tbody>
-        </table>
+        <div id="config-table"></div>
 
         <div class="contribute">
             <h2>Contribute</h2>
@@ -439,5 +369,329 @@
             &middot; Apache 2.0
         </footer>
     </div>
+
+    <script>
+    // Experiment metadata (tier, requirements count, depth)
+    const EXP_META = {
+        'url-shortener': { tier: 'Baseline', reqs: 10, depth: 2 },
+        'task-manager':  { tier: 'Standard', reqs: 13, depth: 5 },
+        'rest-api':      { tier: 'Standard', reqs: 13, depth: 4 },
+        'cli-tool':      { tier: 'Standard', reqs: 14, depth: 3 },
+        'brownfield':    { tier: 'Advanced', reqs: 9,  depth: 3 },
+        'rtmx-self':     { tier: 'Advanced', reqs: 7,  depth: 3 }
+    };
+
+    const TIER_ORDER = ['Baseline', 'Standard', 'Advanced'];
+
+    function fmt(n) {
+        if (n === null || n === undefined || isNaN(n)) return '\u2014';
+        return n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    }
+
+    function pct(n) {
+        if (n === null || n === undefined || isNaN(n)) return '\u2014';
+        return Math.round(n * 100) + '%';
+    }
+
+    function verdict(exp) {
+        var cr = exp.completion_rate;
+        if (cr.treatment > cr.control + 0.1) return { text: 'efficacy', cls: 'pass' };
+        if (cr.treatment < cr.control - 0.1) return { text: 'overhead', cls: 'muted' };
+        return { text: 'neutral', cls: 'muted' };
+    }
+
+    function renderCards(experiments) {
+        var container = document.getElementById('completion-cards');
+        var byTier = {};
+        TIER_ORDER.forEach(function(t) { byTier[t] = []; });
+
+        experiments.forEach(function(exp) {
+            var meta = EXP_META[exp.experiment] || { tier: 'Other', reqs: '?', depth: '?' };
+            var tier = meta.tier;
+            if (!byTier[tier]) byTier[tier] = [];
+            byTier[tier].push({ exp: exp, meta: meta });
+        });
+
+        var html = '';
+        TIER_ORDER.forEach(function(tier) {
+            var items = byTier[tier];
+            if (items.length === 0) return;
+            html += '<div class="tier">';
+            html += '<div class="tier-label">' + tier + '</div>';
+            html += '<div class="experiments">';
+            items.forEach(function(item) {
+                var e = item.exp;
+                var m = item.meta;
+                var v = verdict(e);
+                var cPct = Math.round(e.completion_rate.control * 100);
+                var tPct = Math.round(e.completion_rate.treatment * 100);
+                var fisherP = e.completion_significance
+                    ? e.completion_significance.fisher_p.toFixed(3)
+                    : '\u2014';
+                html += '<div class="exp">';
+                html += '<div class="exp-name">' + e.experiment + '</div>';
+                html += '<div class="exp-meta">' + m.reqs + ' requirements / depth ' + m.depth + '</div>';
+                html += '<div class="bar-row"><span class="bar-label">Control</span>';
+                html += '<div class="bar-track"><div class="bar-fill bar-c" style="width:' + Math.max(cPct, 5) + '%">' + cPct + '%</div></div></div>';
+                html += '<div class="bar-row"><span class="bar-label">Treatment</span>';
+                html += '<div class="bar-track"><div class="bar-fill bar-t" style="width:' + Math.max(tPct, 5) + '%">' + tPct + '%</div></div></div>';
+                html += '<div class="stats">';
+                html += '<div class="stat"><div class="stat-label">N</div><div class="stat-value">' + e.runs.control + '</div></div>';
+                html += '<div class="stat"><div class="stat-label">Fisher p</div><div class="stat-value">' + fisherP + '</div></div>';
+                html += '<div class="stat"><div class="stat-label">Verdict</div><div class="stat-value ' + v.cls + '">' + v.text + '</div></div>';
+                html += '</div></div>';
+            });
+            html += '</div></div>';
+        });
+        container.innerHTML = html;
+    }
+
+    function renderNote(experiments) {
+        var note = document.getElementById('analysis-note');
+        var baseline = experiments.filter(function(e) {
+            return (EXP_META[e.experiment] || {}).tier === 'Baseline';
+        });
+        var standard = experiments.filter(function(e) {
+            return (EXP_META[e.experiment] || {}).tier === 'Standard';
+        });
+
+        if (baseline.length === 0 && standard.length === 0) return;
+
+        var parts = [];
+        if (baseline.length > 0) {
+            var b = baseline[0];
+            var bv = verdict(b);
+            if (bv.text === 'overhead') {
+                parts.push('On the baseline task, the intent layer adds overhead without improving completion.');
+            }
+        }
+        if (standard.length > 0) {
+            var efficacyCount = standard.filter(function(e) { return verdict(e).text === 'efficacy'; }).length;
+            if (efficacyCount > 0) {
+                parts.push('On ' + efficacyCount + ' of ' + standard.length +
+                    ' standard tasks, the intent layer improves completion rate.');
+            }
+        }
+        if (parts.length > 0) {
+            parts.push('The mechanism: structured requirements prevent the thrashing loops that cause agents to fail on complex dependency chains.');
+            note.textContent = parts.join(' ');
+            note.style.display = 'block';
+        }
+    }
+
+    function renderTokenTable(experiments) {
+        var container = document.getElementById('token-table');
+        var html = '<table><thead><tr>';
+        html += '<th>Experiment</th><th>Condition</th><th>Mean Tokens</th><th>CV</th><th>Pass</th>';
+        html += '</tr></thead><tbody>';
+
+        experiments.forEach(function(exp) {
+            ['control', 'treatment'].forEach(function(cond) {
+                var tokens = exp.total_tokens[cond];
+                var runs = exp.runs[cond];
+                var cr = exp.completion_rate[cond];
+                var passN = Math.round(cr * runs);
+                var cv = exp.variance
+                    ? (cond === 'control' ? exp.variance.control_cv : exp.variance.treatment_cv)
+                    : null;
+                var cvStr = (cv !== null && cv !== undefined && !isNaN(cv)) ? cv.toFixed(3) : '\u2014';
+                var tagCls = cond === 'control' ? 'tag-c' : 'tag-t';
+                var passCls = passN === runs ? 'pass' : (passN === 0 ? 'fail' : 'muted');
+
+                html += '<tr>';
+                html += '<td>' + exp.experiment + '</td>';
+                html += '<td><span class="tag ' + tagCls + '">' + cond + '</span></td>';
+                html += '<td>' + fmt(tokens.mean) + '</td>';
+                html += '<td>' + cvStr + '</td>';
+                html += '<td class="' + passCls + '">' + passN + '/' + runs + '</td>';
+                html += '</tr>';
+            });
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+
+    function renderGrid(experiments, ledgerData) {
+        // Build model x experiment grid from raw ledger data
+        // Group by model, then by experiment, showing completion rate per condition
+        var tabsEl = document.getElementById('grid-tabs');
+        var tableEl = document.getElementById('grid-table');
+
+        if (!ledgerData || ledgerData.length === 0) {
+            // Fall back to analysis.json data (single model assumed)
+            renderSimpleGrid(experiments);
+            return;
+        }
+
+        // Parse CSV to extract model x experiment matrix
+        var lines = ledgerData.trim().split('\n');
+        var headers = lines[0].split(',');
+        var modelIdx = headers.indexOf('model');
+        var expIdx = headers.indexOf('experiment');
+        var condIdx = headers.indexOf('condition');
+        var outcomeIdx = headers.indexOf('outcome');
+
+        if (modelIdx < 0 || expIdx < 0) {
+            renderSimpleGrid(experiments);
+            return;
+        }
+
+        var models = {};
+        var expNames = [];
+        for (var i = 1; i < lines.length; i++) {
+            var cols = lines[i].split(',');
+            var model = cols[modelIdx];
+            var expName = cols[expIdx];
+            var cond = cols[condIdx];
+            var outcome = cols[outcomeIdx];
+
+            if (!models[model]) models[model] = {};
+            if (!models[model][expName]) models[model][expName] = { control: { pass: 0, total: 0 }, treatment: { pass: 0, total: 0 } };
+            models[model][expName][cond].total++;
+            if (outcome === 'PASS') models[model][expName][cond].pass++;
+            if (expNames.indexOf(expName) < 0) expNames.push(expName);
+        }
+
+        // Sort experiments by tier order
+        expNames.sort(function(a, b) {
+            var ta = TIER_ORDER.indexOf((EXP_META[a] || {}).tier || 'Other');
+            var tb = TIER_ORDER.indexOf((EXP_META[b] || {}).tier || 'Other');
+            return ta - tb;
+        });
+
+        var modelNames = Object.keys(models).sort();
+
+        // Render tabs for control/treatment/delta views
+        var views = ['completion', 'delta'];
+        var viewLabels = { completion: 'Completion Rate', delta: 'Treatment Delta' };
+        var currentView = 'completion';
+
+        function renderGridView(view) {
+            var html = '<table><thead><tr><th>Model</th>';
+            expNames.forEach(function(name) { html += '<th>' + name + '</th>'; });
+            html += '</tr></thead><tbody>';
+
+            modelNames.forEach(function(model) {
+                html += '<tr><td style="font-family:-apple-system,sans-serif;font-size:0.8rem">' + model + '</td>';
+                expNames.forEach(function(expName) {
+                    var data = (models[model] || {})[expName];
+                    if (!data || (data.control.total === 0 && data.treatment.total === 0)) {
+                        html += '<td class="cell-na">--</td>';
+                        return;
+                    }
+                    if (view === 'delta') {
+                        var cRate = data.control.total > 0 ? data.control.pass / data.control.total : null;
+                        var tRate = data.treatment.total > 0 ? data.treatment.pass / data.treatment.total : null;
+                        if (cRate !== null && tRate !== null) {
+                            var delta = Math.round((tRate - cRate) * 100);
+                            var cls = delta > 0 ? 'cell-delta-pos' : (delta < 0 ? 'cell-delta-neg' : 'muted');
+                            var sign = delta > 0 ? '+' : '';
+                            html += '<td class="' + cls + '">' + sign + delta + 'pp</td>';
+                        } else {
+                            html += '<td class="cell-na">--</td>';
+                        }
+                    } else {
+                        var cStr = data.control.total > 0
+                            ? '<span class="tag tag-c">' + Math.round(data.control.pass / data.control.total * 100) + '%</span>'
+                            : '';
+                        var tStr = data.treatment.total > 0
+                            ? '<span class="tag tag-t">' + Math.round(data.treatment.pass / data.treatment.total * 100) + '%</span>'
+                            : '';
+                        html += '<td>' + cStr + ' ' + tStr + '</td>';
+                    }
+                });
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            tableEl.innerHTML = html;
+        }
+
+        // Render tabs
+        var tabHtml = '';
+        views.forEach(function(v) {
+            var active = v === currentView ? ' active' : '';
+            tabHtml += '<span class="tab' + active + '" data-view="' + v + '">' + viewLabels[v] + '</span>';
+        });
+        tabsEl.innerHTML = tabHtml;
+
+        tabsEl.querySelectorAll('.tab').forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                currentView = this.getAttribute('data-view');
+                tabsEl.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+                this.classList.add('active');
+                renderGridView(currentView);
+            });
+        });
+
+        renderGridView(currentView);
+    }
+
+    function renderSimpleGrid(experiments) {
+        // Single-model fallback: show experiments as columns, one row
+        var tableEl = document.getElementById('grid-table');
+        if (experiments.length === 0) {
+            tableEl.innerHTML = '<p class="no-data">No data available</p>';
+            return;
+        }
+        var html = '<table><thead><tr><th></th>';
+        experiments.forEach(function(e) { html += '<th>' + e.experiment + '</th>'; });
+        html += '</tr></thead><tbody>';
+        html += '<tr><td style="font-family:-apple-system,sans-serif">Control</td>';
+        experiments.forEach(function(e) {
+            html += '<td class="' + (e.completion_rate.control >= 0.8 ? 'cell-pass' : 'cell-fail') + '">' + pct(e.completion_rate.control) + '</td>';
+        });
+        html += '</tr><tr><td style="font-family:-apple-system,sans-serif">Treatment</td>';
+        experiments.forEach(function(e) {
+            html += '<td class="' + (e.completion_rate.treatment >= 0.8 ? 'cell-pass' : 'cell-fail') + '">' + pct(e.completion_rate.treatment) + '</td>';
+        });
+        html += '</tr></tbody></table>';
+        tableEl.innerHTML = html;
+    }
+
+    function renderConfig(meta, experiments) {
+        var container = document.getElementById('config-table');
+        var date = meta.generated_at ? meta.generated_at.split('T')[0] : '\u2014';
+        var scoreVer = meta.score_versions ? meta.score_versions.join(', ') : '\u2014';
+        var totalRuns = 0;
+        experiments.forEach(function(e) { totalRuns += e.runs.control + e.runs.treatment; });
+        var expNames = experiments.map(function(e) { return e.experiment; });
+
+        var html = '<table><tbody>';
+        html += '<tr><td>Experiments</td><td>' + expNames.join(', ') + '</td></tr>';
+        html += '<tr><td>Total runs</td><td>' + totalRuns + '</td></tr>';
+        html += '<tr><td>Score version</td><td>' + scoreVer + '</td></tr>';
+        html += '<tr><td>Last updated</td><td>' + date + '</td></tr>';
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+
+    // Load data and render
+    var basePath = '';
+    // Detect if served from /docs/ or root
+    if (window.location.pathname.indexOf('/docs/') >= 0) {
+        basePath = '../';
+    }
+
+    fetch(basePath + 'results/analysis.json')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var experiments = data.experiments || [];
+            renderCards(experiments);
+            renderNote(experiments);
+            renderTokenTable(experiments);
+            renderConfig(data.meta, experiments);
+
+            // Try loading ledger CSV for model grid
+            return fetch(basePath + 'results/summary.csv')
+                .then(function(r) { return r.text(); })
+                .then(function(csv) { renderGrid(experiments, csv); })
+                .catch(function() { renderGrid(experiments, null); });
+        })
+        .catch(function(err) {
+            console.error('Failed to load analysis data:', err);
+            document.getElementById('completion-cards').innerHTML =
+                '<p class="no-data">Run <code>make analyze</code> to generate results.</p>';
+        });
+    </script>
 </body>
 </html>
