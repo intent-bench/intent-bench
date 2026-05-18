@@ -1,0 +1,14 @@
+name: rtmx-self
+description: >
+  Self-referential experiment using the RTMX CLI codebase itself.
+  The agent implements a real feature (release gate command) that was
+  historically implemented with RTMX. Pinned to v0.2.7 (before the
+  feature existed). Enables comparison against ground truth
+  development costs from the actual v0.3.0 release.
+repo: https://github.com/rtmx-ai/rtmx.git
+commit_sha: 9d00b0b3c8666e9d768203468b7da9e2a79bf516
+treatment: rtmx
+agent: claude-code
+max_budget_usd: "15.00"
+test_command: go test ./...
+setup_command: go mod download

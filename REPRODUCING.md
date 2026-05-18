@@ -11,12 +11,16 @@
 
 Per experiment, per condition, for N=5 runs:
 
-| Experiment | Model | Estimated Cost |
-|------------|-------|---------------|
-| url-shortener | claude-sonnet-4 | ~$15-25 |
-| task-manager | claude-sonnet-4 | ~$30-50 |
+| Experiment | Tier | Model | Estimated Cost |
+|------------|------|-------|---------------|
+| url-shortener | Baseline | claude-sonnet-4 | ~$15-25 |
+| task-manager | Standard | claude-sonnet-4 | ~$30-50 |
+| rest-api | Standard | claude-sonnet-4 | ~$30-50 |
+| cli-tool | Standard | claude-sonnet-4 | ~$25-40 |
+| brownfield | Advanced | claude-sonnet-4 | ~$40-70 |
+| rtmx-self | Advanced | claude-sonnet-4 | ~$40-70 |
 
-Total for a full run (2 experiments x 2 conditions x 5 runs): ~$90-150
+Total for a full run (6 experiments x 2 conditions x 5 runs): ~$320-510
 
 ## Setup
 
