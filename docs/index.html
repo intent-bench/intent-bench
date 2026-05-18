@@ -331,6 +331,109 @@
             text-decoration: none;
         }
 
+        /* Treatment bars */
+        .treatment-chart {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 0 0 1.5rem;
+        }
+        .treatment-row {
+            margin-bottom: 1.25rem;
+        }
+        .treatment-row:last-child { margin-bottom: 0; }
+        .treatment-row-header {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            margin-bottom: 0.4rem;
+        }
+        .treatment-row-name {
+            font-weight: 600;
+            color: var(--heading);
+            font-size: 0.9rem;
+        }
+        .treatment-row-tier {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .treatment-bar-group {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .treatment-bar-row {
+            display: flex;
+            align-items: center;
+            height: 22px;
+        }
+        .treatment-bar-label {
+            width: 90px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-align: right;
+            padding-right: 0.5rem;
+            flex-shrink: 0;
+        }
+        .treatment-bar-track {
+            flex: 1;
+            height: 100%;
+            background: var(--bg);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        .treatment-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding-left: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--heading);
+            min-width: 2px;
+            transition: width 0.3s ease;
+        }
+        .treatment-bar-value {
+            font-size: 0.72rem;
+            font-family: 'SF Mono', 'Menlo', monospace;
+            color: var(--text-muted);
+            margin-left: 0.5rem;
+            flex-shrink: 0;
+            width: 60px;
+        }
+        .treatment-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem 1.25rem;
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .treatment-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            white-space: nowrap;
+        }
+        .treatment-legend-swatch {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+        .treatment-tier-sep {
+            padding-top: 1rem;
+            margin-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
         /* Scatter plot -- centerpiece */
         .scatter-wrap {
             background: var(--surface);
@@ -412,6 +515,10 @@
             <span><span class="dot dot-t"></span> Treatment (prompt + intent)</span>
         </div>
 
+        <h2>Treatment Comparison</h2>
+        <div id="treatment-bars"></div>
+
+        <h2>Treatment Effect</h2>
         <div id="scatter"></div>
 
         <div id="analysis-note" class="note" style="display:none"></div>
@@ -469,6 +576,140 @@
         if (pp > 0) return '+' + pp + 'pp';
         if (pp < 0) return pp + 'pp';
         return '0pp';
+    }
+
+    // Treatment colors -- distinct from tier colors
+    var TREATMENT_COLORS = {
+        'control': '#8b949e',
+        'rtmx': '#648FFF',
+        'manual-spec': '#FFB000',
+        'test-first': '#3fb950'
+    };
+    var TREATMENT_LABELS = {
+        'control': 'Control',
+        'rtmx': 'RTMX',
+        'manual-spec': 'Manual Spec',
+        'test-first': 'Test-First'
+    };
+
+    function renderTreatmentBars(csvData) {
+        var container = document.getElementById('treatment-bars');
+        if (!csvData || csvData.length === 0) {
+            container.innerHTML = '<p class="no-data">No data available</p>';
+            return;
+        }
+
+        var lines = csvData.trim().split('\n');
+        var headers = lines[0].split(',');
+        var expIdx = headers.indexOf('experiment');
+        var condIdx = headers.indexOf('condition');
+        var treatIdx = headers.indexOf('treatment');
+        var outcomeIdx = headers.indexOf('outcome');
+
+        if (expIdx < 0 || condIdx < 0 || outcomeIdx < 0) {
+            container.innerHTML = '<p class="no-data">Insufficient data</p>';
+            return;
+        }
+
+        // Aggregate: experiment -> treatment -> { pass, total }
+        var data = {};
+        var treatmentsSeen = {};
+        for (var i = 1; i < lines.length; i++) {
+            var cols = lines[i].split(',');
+            if (cols.length <= Math.max(expIdx, condIdx, outcomeIdx)) continue;
+            var exp = cols[expIdx];
+            var cond = cols[condIdx];
+            var treat = cond === 'control' ? 'control' : (treatIdx >= 0 ? cols[treatIdx] : 'unknown');
+            var outcome = cols[outcomeIdx];
+
+            if (!data[exp]) data[exp] = {};
+            if (!data[exp][treat]) data[exp][treat] = { pass: 0, total: 0 };
+            data[exp][treat].total++;
+            if (outcome === 'PASS') data[exp][treat].pass++;
+            treatmentsSeen[treat] = true;
+        }
+
+        // Order treatments: control first, then alphabetical
+        var treatmentOrder = ['control'];
+        Object.keys(treatmentsSeen).sort().forEach(function(t) {
+            if (t !== 'control') treatmentOrder.push(t);
+        });
+
+        // Group experiments by tier
+        var byTier = {};
+        TIER_ORDER.forEach(function(t) { byTier[t] = []; });
+        Object.keys(data).forEach(function(exp) {
+            var tier = (EXP_META[exp] || {}).tier || 'Other';
+            if (!byTier[tier]) byTier[tier] = [];
+            byTier[tier].push(exp);
+        });
+
+        // Render
+        var html = '<div class="treatment-chart">';
+        var firstTier = true;
+
+        TIER_ORDER.forEach(function(tier) {
+            var exps = byTier[tier];
+            if (exps.length === 0) return;
+
+            if (!firstTier) {
+                html += '<div class="treatment-tier-sep"></div>';
+            }
+            firstTier = false;
+
+            exps.forEach(function(exp) {
+                var meta = EXP_META[exp] || {};
+                html += '<div class="treatment-row">';
+                html += '<div class="treatment-row-header">';
+                html += '<span class="treatment-row-name">' + exp + '</span>';
+                html += '<span class="treatment-row-tier">' + tier + '</span>';
+                html += '</div>';
+                html += '<div class="treatment-bar-group">';
+
+                treatmentOrder.forEach(function(treat) {
+                    var d = (data[exp] || {})[treat];
+                    if (!d) return;
+                    var rate = d.total > 0 ? d.pass / d.total : 0;
+                    var pctVal = Math.round(rate * 100);
+                    var color = TREATMENT_COLORS[treat] || '#8b949e';
+                    var label = TREATMENT_LABELS[treat] || treat;
+
+                    html += '<div class="treatment-bar-row">';
+                    html += '<span class="treatment-bar-label">' + label + '</span>';
+                    html += '<div class="treatment-bar-track">';
+                    html += '<div class="treatment-bar-fill" style="width:' + Math.max(pctVal, 1) + '%;background:' + color + '">';
+                    html += (pctVal >= 15 ? pctVal + '%' : '') + '</div></div>';
+                    html += '<span class="treatment-bar-value">' + pctVal + '% ' + '<span style="color:#484f58">N=' + d.total + '</span></span>';
+                    html += '</div>';
+                });
+
+                html += '</div></div>';
+            });
+        });
+
+        // Legend
+        html += '<div class="treatment-legend">';
+        treatmentOrder.forEach(function(treat) {
+            var color = TREATMENT_COLORS[treat] || '#8b949e';
+            var label = TREATMENT_LABELS[treat] || treat;
+            html += '<span class="treatment-legend-item">';
+            html += '<span class="treatment-legend-swatch" style="background:' + color + '"></span>';
+            html += label + '</span>';
+        });
+
+        // Show all known treatments dimmed if not yet seen
+        ['manual-spec', 'test-first'].forEach(function(treat) {
+            if (!treatmentsSeen[treat]) {
+                var color = TREATMENT_COLORS[treat];
+                var label = TREATMENT_LABELS[treat];
+                html += '<span class="treatment-legend-item" style="opacity:0.4">';
+                html += '<span class="treatment-legend-swatch" style="background:' + color + '"></span>';
+                html += label + '</span>';
+            }
+        });
+
+        html += '</div></div>';
+        container.innerHTML = html;
     }
 
     function renderHeatmap(experiments) {
@@ -1266,10 +1507,12 @@
             return fetch('summary.csv')
                 .then(function(r) { return r.text(); })
                 .then(function(csv) {
+                    renderTreatmentBars(csv);
                     renderScatter(csv, experiments);
                     renderGrid(experiments, csv);
                 })
                 .catch(function() {
+                    renderTreatmentBars(null);
                     renderScatter(null, null);
                     renderGrid(experiments, null);
                 });
