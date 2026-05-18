@@ -331,15 +331,20 @@
             text-decoration: none;
         }
 
-        /* Scatter plot */
+        /* Scatter plot -- centerpiece */
         .scatter-wrap {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 10px;
-            padding: 1.25rem 1.5rem 1rem;
-            margin: 1.5rem 0;
+            padding: 1.5rem 1.5rem 1rem;
+            margin: 0 0 2.5rem;
         }
-        .scatter-wrap svg { display: block; }
+        .scatter-wrap svg {
+            display: block;
+            width: 100%;
+            max-width: 860px;
+            margin: 0 auto;
+        }
         .scatter-legend {
             display: flex;
             flex-wrap: wrap;
@@ -405,13 +410,12 @@
             <span><span class="dot dot-t"></span> Treatment (prompt + intent)</span>
         </div>
 
-        <h2>Results</h2>
-        <div id="heatmap"></div>
-
-        <h2>Treatment Effect</h2>
         <div id="scatter"></div>
 
         <div id="analysis-note" class="note" style="display:none"></div>
+
+        <h2>Results</h2>
+        <div id="heatmap"></div>
 
         <h2>Model &times; Experiment Grid</h2>
         <div id="grid-tabs" class="tabs"></div>
@@ -651,7 +655,7 @@
     // -- Scatter plot: Control vs Treatment completion rate --
     var TIER_COLORS = {
         'Baseline': '#648FFF',
-        'Standard': '#785EF0',
+        'Standard': '#FE6100',
         'Advanced': '#DC267F'
     };
 
@@ -774,11 +778,21 @@
         return svg;
     }
 
-    function renderScatter(ledgerData) {
+    function renderScatter(ledgerData, experiments) {
         var container = document.getElementById('scatter');
         if (!ledgerData || ledgerData.length === 0) {
             container.innerHTML = '<p class="no-data">No data available</p>';
             return;
+        }
+
+        // Build Fisher p lookup from analysis data: experiment -> fisher_p
+        var fisherLookup = {};
+        if (experiments) {
+            experiments.forEach(function(e) {
+                if (e.completion_significance) {
+                    fisherLookup[e.experiment] = e.completion_significance.fisher_p;
+                }
+            });
         }
 
         // Parse CSV
@@ -813,6 +827,8 @@
         for (var k in points) {
             var p = points[k];
             if (p.control.total > 0 && p.treatment.total > 0) {
+                var fisherP = fisherLookup[p.experiment];
+                var confidence = (fisherP !== undefined && fisherP !== null) ? (1 - fisherP) : 0;
                 data.push({
                     model: p.model,
                     modelKey: getModelKey(p.model),
@@ -820,7 +836,8 @@
                     tier: (EXP_META[p.experiment] || {}).tier || 'Other',
                     controlRate: p.control.pass / p.control.total,
                     treatmentRate: p.treatment.pass / p.treatment.total,
-                    n: Math.min(p.control.total, p.treatment.total)
+                    n: Math.min(p.control.total, p.treatment.total),
+                    confidence: confidence
                 });
             }
         }
@@ -830,9 +847,9 @@
             return;
         }
 
-        // Chart dimensions
-        var W = 560, H = 400;
-        var pad = { top: 20, right: 20, bottom: 45, left: 50 };
+        // Chart dimensions -- centerpiece, full width, tall
+        var W = 860, H = 520;
+        var pad = { top: 20, right: 30, bottom: 50, left: 55 };
         var plotW = W - pad.left - pad.right;
         var plotH = H - pad.top - pad.bottom;
 
@@ -843,7 +860,6 @@
         var svg = document.createElementNS(ns, 'svg');
         svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
         svg.setAttribute('width', '100%');
-        svg.style.maxWidth = W + 'px';
 
         // Efficacy zone (above diagonal)
         var zone = document.createElementNS(ns, 'polygon');
@@ -976,8 +992,7 @@
             var cy = yPos(d.treatmentRate);
             var fill = TIER_COLORS[d.tier] || '#8b949e';
             var shape = shapeForModel(d.modelKey);
-            var confidence = Math.min(d.n, 10) / 10;
-            var confRadius = CONF_R_MIN + confidence * (CONF_R_MAX - CONF_R_MIN);
+            var confRadius = CONF_R_MIN + d.confidence * (CONF_R_MAX - CONF_R_MIN);
 
             modelsUsed[d.modelKey] = shape;
             tiersUsed[d.tier] = fill;
@@ -1003,7 +1018,7 @@
             var title = document.createElementNS(ns, 'title');
             title.textContent = d.experiment + ' (' + d.modelKey + ')\n' +
                 'Control: ' + Math.round(d.controlRate * 100) + '%, Treatment: ' + Math.round(d.treatmentRate * 100) + '%\n' +
-                'N=' + d.n;
+                'N=' + d.n + ', confidence=' + (d.confidence * 100).toFixed(0) + '%';
             el.appendChild(title);
             svg.appendChild(el);
 
@@ -1026,32 +1041,45 @@
         var legend = document.createElement('div');
         legend.className = 'scatter-legend';
 
-        // Tier colors
-        for (var tier in tiersUsed) {
+        // All tier colors (always show all)
+        var allTiers = ['Baseline', 'Standard', 'Advanced'];
+        allTiers.forEach(function(tier) {
             var item = document.createElement('span');
             item.className = 'scatter-legend-item';
-            item.innerHTML = drawShapeSVG('circle', 12, tiersUsed[tier]) + ' ' + tier;
+            var color = TIER_COLORS[tier];
+            var dimmed = !tiersUsed[tier];
+            if (dimmed) item.style.opacity = '0.4';
+            item.innerHTML = drawShapeSVG('circle', 12, color) + ' ' + tier;
             legend.appendChild(item);
-        }
+        });
 
         // Divider
         var sep = document.createElement('span');
         sep.style.cssText = 'border-left:1px solid #21262d; height:12px; align-self:center;';
         legend.appendChild(sep);
 
-        // Model shapes (use neutral grey)
-        for (var mk in modelsUsed) {
+        // All known models (always show all, dim those without data)
+        var allModels = [
+            { key: 'claude-sonnet-4', label: 'Claude Sonnet', shape: 'circle' },
+            { key: 'claude-opus-4', label: 'Claude Opus', shape: 'circle' },
+            { key: 'gpt-4o', label: 'GPT-4o', shape: 'square' },
+            { key: 'llama3', label: 'Llama 3', shape: 'diamond' },
+            { key: 'deepseek-chat', label: 'DeepSeek', shape: 'triangle-up' }
+        ];
+        allModels.forEach(function(m) {
             var mItem = document.createElement('span');
             mItem.className = 'scatter-legend-item';
-            mItem.innerHTML = drawShapeSVG(modelsUsed[mk], 12, '#8b949e') + ' ' + mk;
+            var hasData = modelsUsed[m.key] || Object.keys(modelsUsed).some(function(k) { return k.indexOf(m.key) >= 0; });
+            if (!hasData) mItem.style.opacity = '0.4';
+            mItem.innerHTML = drawShapeSVG(m.shape, 12, '#8b949e') + ' ' + m.label;
             legend.appendChild(mItem);
-        }
+        });
 
         // Confidence note
         var sizeNote = document.createElement('span');
         sizeNote.className = 'scatter-legend-item';
         sizeNote.style.color = '#8b949e';
-        sizeNote.innerHTML = drawShapeSVG('circle', 12, 'rgba(139,148,158,0.15)') + ' Ring = confidence (N/10)';
+        sizeNote.innerHTML = drawShapeSVG('circle', 12, 'rgba(139,148,158,0.15)') + ' Ring = 1 \u2212 Fisher p'
         legend.appendChild(sizeNote);
 
         wrap.appendChild(legend);
@@ -1217,11 +1245,11 @@
             return fetch('summary.csv')
                 .then(function(r) { return r.text(); })
                 .then(function(csv) {
-                    renderScatter(csv);
+                    renderScatter(csv, experiments);
                     renderGrid(experiments, csv);
                 })
                 .catch(function() {
-                    renderScatter(null);
+                    renderScatter(null, null);
                     renderGrid(experiments, null);
                 });
         })
