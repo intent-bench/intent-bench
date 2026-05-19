@@ -476,6 +476,44 @@
             color: var(--text-muted);
             width: 140px;
         }
+
+        /* Mobile responsive */
+        @media (max-width: 640px) {
+            .container { padding: 1.5rem 1rem; }
+            h1 { font-size: 1.4rem; }
+            nav { gap: 0.75rem; font-size: 0.78rem; flex-wrap: wrap; }
+
+            /* Tables: horizontal scroll wrapper added via JS */
+            .table-scroll {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                margin: 0 -1rem;
+                padding: 0 1rem;
+            }
+            .table-scroll table { min-width: 580px; }
+            th, td { padding: 0.4rem 0.5rem; font-size: 0.75rem; }
+            th { font-size: 0.65rem; }
+
+            /* Detail grid: single column on mobile */
+            .detail-grid { grid-template-columns: 1fr; }
+            .detail-panel { padding: 1rem; margin: 0.5rem 0.5rem 1rem; }
+
+            /* Treatment bars */
+            .treatment-bar-label { width: 70px; font-size: 0.65rem; }
+            .treatment-bar-value { width: 50px; font-size: 0.65rem; }
+            .treatment-chart { padding: 1rem; }
+
+            /* Scatter plot */
+            .scatter-wrap { padding: 1rem 0.5rem 0.75rem; }
+
+            /* Legend */
+            .legend { gap: 0.75rem; flex-wrap: wrap; font-size: 0.75rem; }
+            .scatter-legend { gap: 0.4rem 0.75rem; font-size: 0.7rem; }
+            .treatment-legend { gap: 0.4rem 0.75rem; font-size: 0.7rem; }
+
+            /* Config table */
+            .config-table td:first-child { width: 100px; }
+        }
     </style>
 </head>
 <body>
@@ -729,7 +767,7 @@
             byTier[tier].push(exp);
         });
 
-        var html = '<table><thead><tr>';
+        var html = '<div class="table-scroll"><table><thead><tr>';
         html += '<th>Experiment</th>';
         html += '<th>N</th>';
         html += '<th>Control</th>';
@@ -778,7 +816,7 @@
             });
         });
 
-        html += '</tbody></table>';
+        html += '</tbody></table></div>';
         container.innerHTML = html;
 
         // Attach click handlers
@@ -1398,7 +1436,7 @@
         var currentView = 'completion';
 
         function renderGridView(view) {
-            var html = '<table><thead><tr><th>Model</th>';
+            var html = '<div class="table-scroll"><table><thead><tr><th>Model</th>';
             expNames.forEach(function(name) { html += '<th>' + name + '</th>'; });
             html += '</tr></thead><tbody>';
 
@@ -1433,7 +1471,7 @@
                 });
                 html += '</tr>';
             });
-            html += '</tbody></table>';
+            html += '</tbody></table></div>';
             tableEl.innerHTML = html;
         }
 
@@ -1462,7 +1500,7 @@
             tableEl.innerHTML = '<p class="no-data">No data available</p>';
             return;
         }
-        var html = '<table><thead><tr><th></th>';
+        var html = '<div class="table-scroll"><table><thead><tr><th></th>';
         experiments.forEach(function(e) { html += '<th>' + e.experiment + '</th>'; });
         html += '</tr></thead><tbody>';
         html += '<tr><td style="font-family:-apple-system,sans-serif">Control</td>';
@@ -1475,7 +1513,7 @@
             var cls = e.completion_rate.treatment >= 0.8 ? 'cell-pos' : (e.completion_rate.treatment >= 0.5 ? 'cell-neutral' : 'cell-neg');
             html += '<td class="' + cls + '">' + pct(e.completion_rate.treatment) + '</td>';
         });
-        html += '</tr></tbody></table>';
+        html += '</tr></tbody></table></div>';
         tableEl.innerHTML = html;
     }
 
