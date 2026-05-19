@@ -1,7 +1,7 @@
 {
   "meta": {
-    "input_hash": "200d4256e0efcbb037db522eabacb8b08f8421b6475a619b227a23d6aa1d5897",
-    "generated_at": "2026-05-19T15:47:41.787841+00:00",
+    "input_hash": "dc3eddf949f7cabdb3d1e66a81f7fe035a4de934c29d20a5336f1dabd525bcb2",
+    "generated_at": "2026-05-19T21:50:12.581878+00:00",
     "ledger": "results/summary.csv",
     "score_versions": [
       1
@@ -471,6 +471,69 @@
         "significant": false
       },
       "backtrack_rate_treatment": 0.084
+    },
+    {
+      "experiment": "rtmx-self",
+      "runs": {
+        "control": 5,
+        "treatment": 5
+      },
+      "completion_rate": {
+        "control": 1.0,
+        "treatment": 0.0
+      },
+      "total_tokens": {
+        "control": {
+          "mean": 419568.0,
+          "median": 418305.0,
+          "std": 58712.7,
+          "n": 5
+        },
+        "treatment": {
+          "mean": 0,
+          "median": 0,
+          "std": 0,
+          "n": 0
+        }
+      },
+      "turns": {
+        "control": {
+          "mean": 12.0,
+          "median": 11.0,
+          "std": 1.4,
+          "n": 5
+        },
+        "treatment": {
+          "mean": 0,
+          "median": 0,
+          "std": 0,
+          "n": 0
+        }
+      },
+      "backtracks": {
+        "control": {
+          "mean": 1.2,
+          "median": 0.0,
+          "std": 2.7,
+          "n": 5
+        },
+        "treatment": {
+          "mean": 0,
+          "median": 0,
+          "std": 0,
+          "n": 0
+        }
+      },
+      "completion_significance": {
+        "fisher_p": 0.0079,
+        "significant": true
+      },
+      "backtrack_rate_control": 0.1,
+      "entropy_correlation": {
+        "spearman_r": 0.0,
+        "p_value": 1.0,
+        "n": 5
+      }
     }
   ]
 }
