@@ -1262,12 +1262,16 @@
         overheadLabel.textContent = 'INTENT HURTS';
         svg.appendChild(overheadLabel);
 
-        // Plot data points
+        // Plot data points -- two passes: first collect positions, then de-conflict labels
         var modelsUsed = {};
         var tiersUsed = {};
         var POINT_R = 6;
         var CONF_R_MIN = 10;
         var CONF_R_MAX = 48;
+        var LABEL_H = 28; // height of a two-line label block
+
+        // Pass 1: draw points, collect label info
+        var labelSlots = [];
         data.forEach(function(d) {
             var cx = xPos(d.controlRate);
             var cy = yPos(d.treatmentRate);
@@ -1309,27 +1313,84 @@
             var labelX = flipLabel ? cx - POINT_R - 4 : cx + POINT_R + 4;
             var labelAnchor = flipLabel ? 'end' : 'start';
 
+            labelSlots.push({
+                cx: cx, cy: cy,
+                labelX: labelX,
+                labelY: cy, // desired Y (will be adjusted)
+                anchor: labelAnchor,
+                name: d.experiment,
+                meta: 'N=' + d.n + '  p=' + (1 - d.confidence).toFixed(3),
+                fill: fill
+            });
+        });
+
+        // Pass 2: de-conflict overlapping labels
+        // Sort by Y position, then push apart vertically
+        labelSlots.sort(function(a, b) { return a.labelY - b.labelY; });
+        for (var pass = 0; pass < 10; pass++) {
+            var moved = false;
+            for (var i = 1; i < labelSlots.length; i++) {
+                var prev = labelSlots[i - 1];
+                var curr = labelSlots[i];
+                var overlap = (prev.labelY + LABEL_H) - curr.labelY;
+                if (overlap > 0) {
+                    // Push apart symmetrically
+                    var shift = Math.ceil(overlap / 2) + 1;
+                    prev.labelY -= shift;
+                    curr.labelY += shift;
+                    moved = true;
+                }
+            }
+            if (!moved) break;
+            // Re-sort after adjustment
+            labelSlots.sort(function(a, b) { return a.labelY - b.labelY; });
+        }
+
+        // Clamp labels within chart bounds
+        var yMin = pad.top + 8;
+        var yMax = H - pad.bottom - 4;
+        labelSlots.forEach(function(s) {
+            if (s.labelY - 8 < yMin) s.labelY = yMin + 8;
+            if (s.labelY + LABEL_H - 8 > yMax) s.labelY = yMax - LABEL_H + 8;
+        });
+
+        // Pass 3: draw labels with leader lines for displaced labels
+        labelSlots.forEach(function(s) {
+            var displaced = Math.abs(s.labelY - s.cy) > LABEL_H / 2;
+
+            // Leader line from point to label when displaced
+            if (displaced) {
+                var line = document.createElementNS(ns, 'line');
+                line.setAttribute('x1', s.cx);
+                line.setAttribute('y1', s.cy);
+                line.setAttribute('x2', s.labelX);
+                line.setAttribute('y2', s.labelY);
+                line.setAttribute('stroke', '#21262d');
+                line.setAttribute('stroke-width', '1');
+                svg.appendChild(line);
+            }
+
             // Line 1: experiment name
             var label = document.createElementNS(ns, 'text');
-            label.setAttribute('x', labelX);
-            label.setAttribute('y', cy - 6);
-            label.setAttribute('text-anchor', labelAnchor);
+            label.setAttribute('x', s.labelX);
+            label.setAttribute('y', s.labelY - 6);
+            label.setAttribute('text-anchor', s.anchor);
             label.setAttribute('fill', '#c9d1d9');
             label.setAttribute('font-size', '11');
             label.setAttribute('font-family', '-apple-system, sans-serif');
             label.setAttribute('font-weight', '500');
-            label.textContent = d.experiment;
+            label.textContent = s.name;
             svg.appendChild(label);
 
             // Line 2: N and Fisher p
             var confLabel = document.createElementNS(ns, 'text');
-            confLabel.setAttribute('x', labelX);
-            confLabel.setAttribute('y', cy + 7);
-            confLabel.setAttribute('text-anchor', labelAnchor);
+            confLabel.setAttribute('x', s.labelX);
+            confLabel.setAttribute('y', s.labelY + 7);
+            confLabel.setAttribute('text-anchor', s.anchor);
             confLabel.setAttribute('fill', '#8b949e');
             confLabel.setAttribute('font-size', '10');
             confLabel.setAttribute('font-family', 'SF Mono, Menlo, monospace');
-            confLabel.textContent = 'N=' + d.n + '  p=' + (1 - d.confidence).toFixed(3);
+            confLabel.textContent = s.meta;
             svg.appendChild(confLabel);
         });
 
