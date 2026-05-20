@@ -1,7 +1,7 @@
 {
   "meta": {
-    "input_hash": "1e69a77d2d4e9f97f157635654970b9264b04938e78ce6ffd1254109727844b2",
-    "generated_at": "2026-05-20T01:52:00.623559+00:00",
+    "input_hash": "57d38285c4f56e33314a26ca094a5dc0dd7af9f0be7ad1d38db2fd08261087ca",
+    "generated_at": "2026-05-20T01:52:25.352425+00:00",
     "ledger": "results/summary.csv",
     "score_versions": [
       1
@@ -678,6 +678,105 @@
         "control_cv": 0.356,
         "treatment_cv": 0.515,
         "variance_reduction": -0.448
+      }
+    },
+    {
+      "experiment": "go-yaml",
+      "runs": {
+        "control": 5,
+        "treatment": 5
+      },
+      "completion_rate": {
+        "control": 1.0,
+        "treatment": 1.0
+      },
+      "total_tokens": {
+        "control": {
+          "mean": 4699207.4,
+          "median": 5046856.0,
+          "std": 1361810.6,
+          "n": 5
+        },
+        "treatment": {
+          "mean": 5813124.6,
+          "median": 5840757.0,
+          "std": 1373462.7,
+          "n": 5
+        }
+      },
+      "turns": {
+        "control": {
+          "mean": 101.6,
+          "median": 105.0,
+          "std": 14.4,
+          "n": 5
+        },
+        "treatment": {
+          "mean": 108.6,
+          "median": 103.0,
+          "std": 21.4,
+          "n": 5
+        }
+      },
+      "backtracks": {
+        "control": {
+          "mean": 17.8,
+          "median": 18.0,
+          "std": 4.5,
+          "n": 5
+        },
+        "treatment": {
+          "mean": 17.6,
+          "median": 19.0,
+          "std": 4.8,
+          "n": 5
+        }
+      },
+      "treatment_breakdown": {
+        "tool_tokens": {
+          "mean": 36.4,
+          "median": 0.0,
+          "std": 54.7,
+          "n": 5
+        },
+        "planning_tokens": {
+          "mean": 220.0,
+          "median": 178.0,
+          "std": 67.2,
+          "n": 5
+        },
+        "execution_tokens": {
+          "mean": 5812904.6,
+          "median": 5840593.0,
+          "std": 1373405.4,
+          "n": 5
+        }
+      },
+      "token_efficiency": {
+        "ratio": 0.808,
+        "ci_lower": 0.596,
+        "ci_upper": 1.083
+      },
+      "mann_whitney": {
+        "u_statistic": 8.0,
+        "p_value": 0.4206,
+        "significant": false
+      },
+      "completion_significance": {
+        "fisher_p": 1.0,
+        "significant": false
+      },
+      "backtrack_rate_control": 0.175,
+      "backtrack_rate_treatment": 0.162,
+      "entropy_correlation": {
+        "spearman_r": -0.319,
+        "p_value": 0.3689,
+        "n": 10
+      },
+      "variance": {
+        "control_cv": 0.29,
+        "treatment_cv": 0.236,
+        "variance_reduction": 0.185
       }
     }
   ]
