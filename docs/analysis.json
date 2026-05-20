@@ -1,7 +1,7 @@
 {
   "meta": {
-    "input_hash": "200d4256e0efcbb037db522eabacb8b08f8421b6475a619b227a23d6aa1d5897",
-    "generated_at": "2026-05-19T15:47:41.787841+00:00",
+    "input_hash": "425f9e0fb1787c30d3a5e28725cdff789c3b43911263252066cd80088a68344e",
+    "generated_at": "2026-05-20T01:51:17.048646+00:00",
     "ledger": "results/summary.csv",
     "score_versions": [
       1
@@ -11,8 +11,8 @@
     {
       "experiment": "url-shortener",
       "runs": {
-        "control": 5,
-        "treatment": 5
+        "control": 10,
+        "treatment": 10
       },
       "completion_rate": {
         "control": 1.0,
@@ -22,28 +22,28 @@
         "control": {
           "mean": 1030606.0,
           "median": 1179100.0,
-          "std": 471844.8,
-          "n": 5
+          "std": 444859.6,
+          "n": 10
         },
         "treatment": {
           "mean": 2220736.2,
           "median": 1984438.0,
-          "std": 698389.7,
-          "n": 4
+          "std": 646583.2,
+          "n": 8
         }
       },
       "turns": {
         "control": {
           "mean": 30.4,
           "median": 34.0,
-          "std": 9.9,
-          "n": 5
+          "std": 9.3,
+          "n": 10
         },
         "treatment": {
           "mean": 61.5,
           "median": 57.0,
-          "std": 14.2,
-          "n": 4
+          "std": 13.1,
+          "n": 8
         }
       },
       "backtracks": {
@@ -51,13 +51,13 @@
           "mean": 0.0,
           "median": 0.0,
           "std": 0.0,
-          "n": 5
+          "n": 10
         },
         "treatment": {
           "mean": 0.2,
           "median": 0.0,
           "std": 0.5,
-          "n": 4
+          "n": 8
         }
       },
       "treatment_breakdown": {
@@ -65,53 +65,53 @@
           "mean": 0.0,
           "median": 0.0,
           "std": 0.0,
-          "n": 4
+          "n": 8
         },
         "planning_tokens": {
           "mean": 361.8,
           "median": 362.5,
-          "std": 110.1,
-          "n": 4
+          "std": 102.0,
+          "n": 8
         },
         "execution_tokens": {
           "mean": 2220374.5,
           "median": 1984077.0,
-          "std": 698307.7,
-          "n": 4
+          "std": 646507.3,
+          "n": 8
         }
       },
       "token_efficiency": {
         "ratio": 0.464,
-        "ci_lower": 0.281,
-        "ci_upper": 0.699
+        "ci_lower": 0.331,
+        "ci_upper": 0.63
       },
       "mann_whitney": {
         "u_statistic": 0.0,
-        "p_value": 0.0159,
+        "p_value": 0.0004,
         "significant": true
       },
       "completion_significance": {
-        "fisher_p": 1.0,
+        "fisher_p": 0.4737,
         "significant": false
       },
       "backtrack_rate_control": 0.0,
       "backtrack_rate_treatment": 0.004,
       "entropy_correlation": {
         "spearman_r": -0.008,
-        "p_value": 0.983,
-        "n": 9
+        "p_value": 0.9737,
+        "n": 18
       },
       "variance": {
-        "control_cv": 0.458,
-        "treatment_cv": 0.314,
-        "variance_reduction": 0.313
+        "control_cv": 0.432,
+        "treatment_cv": 0.291,
+        "variance_reduction": 0.325
       }
     },
     {
       "experiment": "task-manager",
       "runs": {
-        "control": 5,
-        "treatment": 5
+        "control": 10,
+        "treatment": 10
       },
       "completion_rate": {
         "control": 0.2,
@@ -121,42 +121,42 @@
         "control": {
           "mean": 4427685.0,
           "median": 4427685.0,
-          "std": 0,
-          "n": 1
+          "std": 0.0,
+          "n": 2
         },
         "treatment": {
           "mean": 3636346.0,
           "median": 3569454.0,
-          "std": 1655287.3,
-          "n": 4
+          "std": 1532498.2,
+          "n": 8
         }
       },
       "turns": {
         "control": {
           "mean": 76.0,
           "median": 76.0,
-          "std": 0,
-          "n": 1
+          "std": 0.0,
+          "n": 2
         },
         "treatment": {
           "mean": 75.8,
           "median": 76.5,
-          "std": 21.4,
-          "n": 4
+          "std": 19.8,
+          "n": 8
         }
       },
       "backtracks": {
         "control": {
           "mean": 0.0,
           "median": 0.0,
-          "std": 0,
-          "n": 1
+          "std": 0.0,
+          "n": 2
         },
         "treatment": {
           "mean": 1.2,
           "median": 1.0,
-          "std": 1.3,
-          "n": 4
+          "std": 1.2,
+          "n": 8
         }
       },
       "treatment_breakdown": {
@@ -164,48 +164,53 @@
           "mean": 0.0,
           "median": 0.0,
           "std": 0.0,
-          "n": 4
+          "n": 8
         },
         "planning_tokens": {
           "mean": 357.2,
           "median": 329.0,
-          "std": 137.0,
-          "n": 4
+          "std": 126.8,
+          "n": 8
         },
         "execution_tokens": {
           "mean": 3635988.8,
           "median": 3569068.5,
-          "std": 1655367.0,
-          "n": 4
+          "std": 1532572.0,
+          "n": 8
         }
       },
       "token_efficiency": {
         "ratio": 1.218,
-        "ci_lower": 0.874,
-        "ci_upper": 2.004
+        "ci_lower": 0.947,
+        "ci_upper": 1.714
       },
       "mann_whitney": {
-        "u_statistic": 2.0,
+        "u_statistic": 8.0,
         "p_value": 1.0,
         "significant": false
       },
       "completion_significance": {
-        "fisher_p": 0.2063,
-        "significant": false
+        "fisher_p": 0.023,
+        "significant": true
       },
       "backtrack_rate_control": 0.0,
       "backtrack_rate_treatment": 0.017,
       "entropy_correlation": {
         "spearman_r": 0.359,
-        "p_value": 0.5528,
-        "n": 5
+        "p_value": 0.3082,
+        "n": 10
+      },
+      "variance": {
+        "control_cv": 0.0,
+        "treatment_cv": 0.421,
+        "variance_reduction": 0
       }
     },
     {
       "experiment": "rest-api",
       "runs": {
-        "control": 6,
-        "treatment": 6
+        "control": 12,
+        "treatment": 12
       },
       "completion_rate": {
         "control": 0.333,
@@ -215,14 +220,14 @@
         "control": {
           "mean": 1121391.5,
           "median": 1121391.5,
-          "std": 12179.9,
-          "n": 2
+          "std": 9944.9,
+          "n": 4
         },
         "treatment": {
           "mean": 2538504.2,
           "median": 2115838.5,
-          "std": 1276466.9,
-          "n": 6
+          "std": 1217063.4,
+          "n": 12
         }
       },
       "turns": {
@@ -230,13 +235,13 @@
           "mean": 31.0,
           "median": 31.0,
           "std": 0.0,
-          "n": 2
+          "n": 4
         },
         "treatment": {
           "mean": 64.0,
           "median": 61.0,
-          "std": 17.9,
-          "n": 6
+          "std": 17.1,
+          "n": 12
         }
       },
       "backtracks": {
@@ -244,67 +249,67 @@
           "mean": 0.0,
           "median": 0.0,
           "std": 0.0,
-          "n": 2
+          "n": 4
         },
         "treatment": {
           "mean": 1.3,
           "median": 1.5,
           "std": 0.8,
-          "n": 6
+          "n": 12
         }
       },
       "treatment_breakdown": {
         "tool_tokens": {
           "mean": 70.0,
           "median": 71.0,
-          "std": 17.1,
-          "n": 6
+          "std": 16.3,
+          "n": 12
         },
         "planning_tokens": {
           "mean": 348.5,
           "median": 328.0,
-          "std": 59.1,
-          "n": 6
+          "std": 56.4,
+          "n": 12
         },
         "execution_tokens": {
           "mean": 2538155.7,
           "median": 2115506.0,
-          "std": 1276471.9,
-          "n": 6
+          "std": 1217068.2,
+          "n": 12
         }
       },
       "token_efficiency": {
         "ratio": 0.442,
-        "ci_lower": 0.31,
-        "ci_upper": 0.596
+        "ci_lower": 0.34,
+        "ci_upper": 0.567
       },
       "mann_whitney": {
         "u_statistic": 0.0,
-        "p_value": 0.0714,
-        "significant": false
+        "p_value": 0.0041,
+        "significant": true
       },
       "completion_significance": {
-        "fisher_p": 0.0606,
-        "significant": false
+        "fisher_p": 0.0013,
+        "significant": true
       },
       "backtrack_rate_control": 0.0,
       "backtrack_rate_treatment": 0.021,
       "entropy_correlation": {
         "spearman_r": -0.381,
-        "p_value": 0.3524,
-        "n": 8
+        "p_value": 0.1459,
+        "n": 16
       },
       "variance": {
-        "control_cv": 0.011,
-        "treatment_cv": 0.503,
-        "variance_reduction": -45.296
+        "control_cv": 0.009,
+        "treatment_cv": 0.479,
+        "variance_reduction": -53.062
       }
     },
     {
       "experiment": "cli-tool",
       "runs": {
-        "control": 5,
-        "treatment": 5
+        "control": 10,
+        "treatment": 10
       },
       "completion_rate": {
         "control": 0.6,
@@ -314,84 +319,89 @@
         "control": {
           "mean": 1963982.3,
           "median": 1700712.0,
-          "std": 698497.2,
-          "n": 3
+          "std": 624754.9,
+          "n": 6
         },
         "treatment": {
           "mean": 2158288.0,
           "median": 2158288.0,
-          "std": 0,
-          "n": 1
+          "std": 0.0,
+          "n": 2
         }
       },
       "turns": {
         "control": {
           "mean": 49.3,
           "median": 44.0,
-          "std": 12.9,
-          "n": 3
+          "std": 11.5,
+          "n": 6
         },
         "treatment": {
           "mean": 62.0,
           "median": 62.0,
-          "std": 0,
-          "n": 1
+          "std": 0.0,
+          "n": 2
         }
       },
       "backtracks": {
         "control": {
           "mean": 1.0,
           "median": 1.0,
-          "std": 1.0,
-          "n": 3
+          "std": 0.9,
+          "n": 6
         },
         "treatment": {
           "mean": 1.0,
           "median": 1.0,
-          "std": 0,
-          "n": 1
+          "std": 0.0,
+          "n": 2
         }
       },
       "treatment_breakdown": {
         "tool_tokens": {
           "mean": 51.0,
           "median": 51.0,
-          "std": 0,
-          "n": 1
+          "std": 0.0,
+          "n": 2
         },
         "planning_tokens": {
           "mean": 500.0,
           "median": 500.0,
-          "std": 0,
-          "n": 1
+          "std": 0.0,
+          "n": 2
         },
         "execution_tokens": {
           "mean": 2157788.0,
           "median": 2157788.0,
-          "std": 0,
-          "n": 1
+          "std": 0.0,
+          "n": 2
         }
       },
       "token_efficiency": {
         "ratio": 0.91,
-        "ci_lower": 0.665,
-        "ci_upper": 1.277
+        "ci_lower": 0.706,
+        "ci_upper": 1.114
       },
       "mann_whitney": {
-        "u_statistic": 1.0,
-        "p_value": 1.0,
+        "u_statistic": 4.0,
+        "p_value": 0.6084,
         "significant": false
       },
       "completion_significance": {
-        "fisher_p": 0.5238,
+        "fisher_p": 0.1698,
         "significant": false
       },
       "backtrack_rate_control": 0.02,
       "backtrack_rate_treatment": 0.016,
       "entropy_correlation": {
         "spearman_r": 0.8,
-        "p_value": 0.2,
-        "n": 4
+        "p_value": 0.0171,
+        "n": 8
+      },
+      "variance": {
+        "control_cv": 0.318,
+        "treatment_cv": 0.0,
+        "variance_reduction": 1.0
       }
     },
     {
@@ -471,6 +481,105 @@
         "significant": false
       },
       "backtrack_rate_treatment": 0.084
+    },
+    {
+      "experiment": "csvkit",
+      "runs": {
+        "control": 5,
+        "treatment": 5
+      },
+      "completion_rate": {
+        "control": 1.0,
+        "treatment": 1.0
+      },
+      "total_tokens": {
+        "control": {
+          "mean": 3987731.6,
+          "median": 3295733.0,
+          "std": 1059116.1,
+          "n": 5
+        },
+        "treatment": {
+          "mean": 4612242.8,
+          "median": 4535522.0,
+          "std": 523835.1,
+          "n": 5
+        }
+      },
+      "turns": {
+        "control": {
+          "mean": 78.2,
+          "median": 73.0,
+          "std": 12.5,
+          "n": 5
+        },
+        "treatment": {
+          "mean": 88.0,
+          "median": 90.0,
+          "std": 4.6,
+          "n": 5
+        }
+      },
+      "backtracks": {
+        "control": {
+          "mean": 4.2,
+          "median": 4.0,
+          "std": 1.8,
+          "n": 5
+        },
+        "treatment": {
+          "mean": 5.2,
+          "median": 6.0,
+          "std": 1.3,
+          "n": 5
+        }
+      },
+      "treatment_breakdown": {
+        "tool_tokens": {
+          "mean": 57.6,
+          "median": 35.0,
+          "std": 77.0,
+          "n": 5
+        },
+        "planning_tokens": {
+          "mean": 647.8,
+          "median": 594.0,
+          "std": 236.4,
+          "n": 5
+        },
+        "execution_tokens": {
+          "mean": 4611595.0,
+          "median": 4534928.0,
+          "std": 524026.4,
+          "n": 5
+        }
+      },
+      "token_efficiency": {
+        "ratio": 0.865,
+        "ci_lower": 0.684,
+        "ci_upper": 1.073
+      },
+      "mann_whitney": {
+        "u_statistic": 8.0,
+        "p_value": 0.4206,
+        "significant": false
+      },
+      "completion_significance": {
+        "fisher_p": 1.0,
+        "significant": false
+      },
+      "backtrack_rate_control": 0.054,
+      "backtrack_rate_treatment": 0.059,
+      "entropy_correlation": {
+        "spearman_r": 0.407,
+        "p_value": 0.2427,
+        "n": 10
+      },
+      "variance": {
+        "control_cv": 0.266,
+        "treatment_cv": 0.114,
+        "variance_reduction": 0.572
+      }
     }
   ]
 }
