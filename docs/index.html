@@ -1349,9 +1349,10 @@
         // Clamp labels within chart bounds
         var yMin = pad.top + 8;
         var yMax = H - pad.bottom - 4;
+        var halfLabelH = LABEL_H / 2;
         labelSlots.forEach(function(s) {
-            if (s.labelY - 8 < yMin) s.labelY = yMin + 8;
-            if (s.labelY + LABEL_H - 8 > yMax) s.labelY = yMax - LABEL_H + 8;
+            if (s.labelY - halfLabelH < yMin) s.labelY = yMin + halfLabelH;
+            if (s.labelY + halfLabelH > yMax) s.labelY = yMax - halfLabelH;
         });
 
         // Pass 3: draw labels with leader lines for displaced labels
