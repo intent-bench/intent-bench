@@ -1,7 +1,7 @@
 {
   "meta": {
-    "input_hash": "425f9e0fb1787c30d3a5e28725cdff789c3b43911263252066cd80088a68344e",
-    "generated_at": "2026-05-20T01:51:17.048646+00:00",
+    "input_hash": "1e69a77d2d4e9f97f157635654970b9264b04938e78ce6ffd1254109727844b2",
+    "generated_at": "2026-05-20T01:52:00.623559+00:00",
     "ledger": "results/summary.csv",
     "score_versions": [
       1
@@ -579,6 +579,105 @@
         "control_cv": 0.266,
         "treatment_cv": 0.114,
         "variance_reduction": 0.572
+      }
+    },
+    {
+      "experiment": "go-toml",
+      "runs": {
+        "control": 5,
+        "treatment": 5
+      },
+      "completion_rate": {
+        "control": 1.0,
+        "treatment": 1.0
+      },
+      "total_tokens": {
+        "control": {
+          "mean": 4443204.0,
+          "median": 5249376.0,
+          "std": 1579679.2,
+          "n": 5
+        },
+        "treatment": {
+          "mean": 3826104.0,
+          "median": 3066708.0,
+          "std": 1969041.9,
+          "n": 5
+        }
+      },
+      "turns": {
+        "control": {
+          "mean": 76.4,
+          "median": 77.0,
+          "std": 20.5,
+          "n": 5
+        },
+        "treatment": {
+          "mean": 68.8,
+          "median": 66.0,
+          "std": 22.9,
+          "n": 5
+        }
+      },
+      "backtracks": {
+        "control": {
+          "mean": 8.0,
+          "median": 7.0,
+          "std": 5.4,
+          "n": 5
+        },
+        "treatment": {
+          "mean": 4.4,
+          "median": 3.0,
+          "std": 2.8,
+          "n": 5
+        }
+      },
+      "treatment_breakdown": {
+        "tool_tokens": {
+          "mean": 72.0,
+          "median": 70.0,
+          "std": 57.5,
+          "n": 5
+        },
+        "planning_tokens": {
+          "mean": 376.4,
+          "median": 373.0,
+          "std": 128.5,
+          "n": 5
+        },
+        "execution_tokens": {
+          "mean": 3825727.6,
+          "median": 3066403.0,
+          "std": 1969035.7,
+          "n": 5
+        }
+      },
+      "token_efficiency": {
+        "ratio": 1.161,
+        "ci_lower": 0.704,
+        "ci_upper": 1.843
+      },
+      "mann_whitney": {
+        "u_statistic": 15.0,
+        "p_value": 0.6905,
+        "significant": false
+      },
+      "completion_significance": {
+        "fisher_p": 1.0,
+        "significant": false
+      },
+      "backtrack_rate_control": 0.105,
+      "backtrack_rate_treatment": 0.064,
+      "entropy_correlation": {
+        "spearman_r": -0.122,
+        "p_value": 0.7364,
+        "n": 10
+      },
+      "variance": {
+        "control_cv": 0.356,
+        "treatment_cv": 0.515,
+        "variance_reduction": -0.448
       }
     }
   ]
