@@ -34,8 +34,11 @@ depend on earlier ones being complete.
 
 ### API
 
-Schema is created at application startup. No direct API endpoint is exposed.
+### Schema Initialization
 
+The database schema is created at application startup. No direct API endpoint is exposed for schema creation.
+
+**Example table DDL:**
 ```sql
 CREATE TABLE users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -112,53 +115,16 @@ CREATE TABLE organizations (
 }
 ```
 
----
-
-## 3. REQ-VALID-001: Input validation on all endpoints
-
-**Phase:** 2
-
-**Depends on:** REQ-DB-001
-
-*Prevents corrupt data and provides clear error messages*
-
-### Acceptance Criteria
-
-1. Email fields must conform to a valid email format; invalid emails return 422 with a descriptive field-level error.
-2. Username must be 3-30 characters and contain only alphanumeric characters; violations return 422.
-3. Password must be at least 8 characters; shorter passwords return 422.
-4. Organization name must be non-empty and at most 100 characters; violations return 422.
-5. Organization slug must be 3-50 characters, lowercase alphanumeric with hyphens only; violations return 422.
-6. Project name must be non-empty and at most 200 characters; violations return 422.
-7. Resource name must be non-empty; empty names return 422.
-8. Resource type must be non-empty; empty types return 422.
-9. Resource metadata must be valid JSON if provided; invalid JSON returns 422.
-10. Webhook URL must be a valid HTTPS URL; invalid URLs return 422.
-11. API key scopes must be a non-empty array containing only recognized values (read, write, admin); violations return 422.
-12. Date fields must conform to ISO 8601 format; invalid dates return 422.
-
-### API
-
-**Error (422 Unprocessable Entity):**
+**Error (400 Bad Request):**
 ```json
 {
-  "error": "validation failed",
-  "details": [
-    {
-      "field": "email",
-      "message": "invalid email format"
-    },
-    {
-      "field": "password",
-      "message": "password must be at least 8 characters"
-    }
-  ]
+  "error": "username, email, and password are required"
 }
 ```
 
 ---
 
-## 4. REQ-AUTH-002: JWT login and authentication middleware
+## 3. REQ-AUTH-002: JWT login and authentication middleware
 
 **Phase:** 1
 
@@ -170,7 +136,7 @@ CREATE TABLE organizations (
 
 1. POST /auth/login accepts email and password, returning a JWT token on success.
 2. The JWT token includes the user's id in the payload and expires after 1 hour.
-3. Invalid email or password returns 401 Unauthorized with a generic error message.
+3. Invalid email or password returns 401 Unauthorized with a generic error message (no indication of which field is wrong).
 4. The authentication middleware extracts the JWT from the Authorization header (Bearer scheme).
 5. Requests without a valid Authorization header to protected endpoints return 401 Unauthorized.
 6. Expired tokens return 401 Unauthorized with an appropriate error message.
@@ -211,69 +177,16 @@ CREATE TABLE organizations (
 }
 ```
 
----
-
-## 5. REQ-VALID-002: Consistent error response format
-
-**Phase:** 2
-
-**Depends on:** REQ-VALID-001
-
-*Consistent API contract for consumers*
-
-### Acceptance Criteria
-
-1. All error responses return a JSON object with at minimum an "error" field containing a descriptive message.
-2. 401 Unauthorized is returned when no authentication token is provided or the token is invalid/expired.
-3. 402 Payment Required is returned when an operation would exceed the organization's plan limits.
-4. 403 Forbidden is returned when the authenticated user lacks the required role or permission for the operation.
-5. 404 Not Found is returned when the requested resource does not exist or belongs to a different tenant.
-6. 409 Conflict is returned when an operation violates a uniqueness constraint (duplicate email, username, slug, etc.).
-7. 422 Unprocessable Entity is returned for validation errors and includes a details array with field-level messages.
-8. 400 Bad Request is returned for malformed requests or missing required query parameters.
-9. 500 Internal Server Error responses include a generic error message and never expose internal implementation details.
-10. All error responses include the Content-Type: application/json header.
-
-### API
-
-**Error (401 Unauthorized):**
+**Error (400 Bad Request):**
 ```json
 {
-  "error": "authentication required"
-}
-```
-
-**Error (402 Payment Required):**
-```json
-{
-  "error": "plan limit exceeded: upgrade to add more projects"
-}
-```
-
-**Error (403 Forbidden):**
-```json
-{
-  "error": "insufficient permissions"
-}
-```
-
-**Error (404 Not Found):**
-```json
-{
-  "error": "resource not found"
-}
-```
-
-**Error (409 Conflict):**
-```json
-{
-  "error": "slug already in use"
+  "error": "email and password are required"
 }
 ```
 
 ---
 
-## 6. REQ-AUTH-003: User profile view and update
+## 4. REQ-AUTH-003: User profile view and update
 
 **Phase:** 2
 
@@ -332,6 +245,156 @@ CREATE TABLE organizations (
 }
 ```
 
+**Error (409 Conflict):**
+```json
+{
+  "error": "email already registered"
+}
+```
+
+---
+
+## 5. REQ-VALID-001: Input validation on all endpoints
+
+**Phase:** 2
+
+**Depends on:** REQ-DB-001
+
+*Prevents corrupt data and provides clear error messages*
+
+### Acceptance Criteria
+
+1. Email fields must conform to a valid email format; invalid emails return 422 with a descriptive field-level error.
+2. Username must be 3-30 characters and contain only alphanumeric characters; violations return 422.
+3. Password must be at least 8 characters; shorter passwords return 422.
+4. Organization name must be non-empty and at most 100 characters; violations return 422.
+5. Organization slug must be 3-50 characters, lowercase alphanumeric with hyphens only; violations return 422.
+6. Project name must be non-empty and at most 200 characters; violations return 422.
+7. Resource name must be non-empty; empty names return 422.
+8. Resource type must be non-empty; empty types return 422.
+9. Resource metadata must be valid JSON if provided; invalid JSON returns 422.
+10. Webhook URL must be a valid HTTPS URL; invalid URLs return 422.
+11. API key scopes must be a non-empty array containing only recognized values (read, write, admin); violations return 422.
+12. Date fields must conform to ISO 8601 format; invalid dates return 422.
+
+### API
+
+### Error response format
+
+All validation errors follow a consistent format.
+
+**Error (422 Unprocessable Entity):**
+```json
+{
+  "error": "validation failed",
+  "details": [
+    {
+      "field": "email",
+      "message": "invalid email format"
+    },
+    {
+      "field": "password",
+      "message": "password must be at least 8 characters"
+    }
+  ]
+}
+```
+
+**Error (422 Unprocessable Entity -- single field):**
+```json
+{
+  "error": "validation failed",
+  "details": [
+    {
+      "field": "slug",
+      "message": "slug must be 3-50 lowercase alphanumeric characters or hyphens"
+    }
+  ]
+}
+```
+
+---
+
+## 6. REQ-VALID-002: Consistent error response format
+
+**Phase:** 2
+
+**Depends on:** REQ-VALID-001
+
+*Consistent API contract for consumers*
+
+### Acceptance Criteria
+
+1. All error responses return a JSON object with at minimum an "error" field containing a descriptive message.
+2. 401 Unauthorized is returned when no authentication token is provided or the token is invalid/expired.
+3. 402 Payment Required is returned when an operation would exceed the organization's plan limits.
+4. 403 Forbidden is returned when the authenticated user lacks the required role or permission for the operation.
+5. 404 Not Found is returned when the requested resource does not exist or belongs to a different tenant.
+6. 409 Conflict is returned when an operation violates a uniqueness constraint (duplicate email, username, slug, etc.).
+7. 422 Unprocessable Entity is returned for validation errors and includes a details array with field-level messages.
+8. 400 Bad Request is returned for malformed requests or missing required query parameters.
+9. 500 Internal Server Error responses include a generic error message and never expose internal implementation details.
+10. All error responses include the Content-Type: application/json header.
+
+### API
+
+### Standard error response formats
+
+**Error (401 Unauthorized):**
+```json
+{
+  "error": "authentication required"
+}
+```
+
+**Error (402 Payment Required):**
+```json
+{
+  "error": "plan limit exceeded: upgrade to add more projects"
+}
+```
+
+**Error (403 Forbidden):**
+```json
+{
+  "error": "insufficient permissions"
+}
+```
+
+**Error (404 Not Found):**
+```json
+{
+  "error": "resource not found"
+}
+```
+
+**Error (409 Conflict):**
+```json
+{
+  "error": "slug already in use"
+}
+```
+
+**Error (422 Unprocessable Entity):**
+```json
+{
+  "error": "validation failed",
+  "details": [
+    {
+      "field": "name",
+      "message": "name is required"
+    }
+  ]
+}
+```
+
+**Error (500 Internal Server Error):**
+```json
+{
+  "error": "internal server error"
+}
+```
+
 ---
 
 ## 7. REQ-TENANT-001: Organization creation with owner assignment
@@ -378,6 +441,13 @@ CREATE TABLE organizations (
 }
 ```
 
+**Error (409 Conflict):**
+```json
+{
+  "error": "organization slug already exists"
+}
+```
+
 ### GET /orgs
 
 **Response (200 OK):**
@@ -396,55 +466,7 @@ CREATE TABLE organizations (
 
 ---
 
-## 8. REQ-BILLING-001: Billing plan definitions and limits
-
-**Phase:** 4
-
-**Depends on:** REQ-TENANT-001
-
-*Plans define the resource limits for each org*
-
-### Acceptance Criteria
-
-1. The system defines four billing plans: free, starter, business, and enterprise.
-2. The free plan allows 3 members, 2 projects, 50 resources, and 1 API key at $0/month.
-3. The starter plan allows 10 members, 10 projects, 500 resources, and 5 API keys at $29/month.
-4. The business plan allows 50 members, 50 projects, 5000 resources, and 25 API keys at $99/month.
-5. The enterprise plan allows unlimited members, projects, resources, and API keys at $299/month.
-6. GET /orgs/:slug/billing/plan returns the current plan name, limits, current usage counts, and price.
-7. New organizations are assigned the "free" plan by default.
-8. Plan definitions are immutable at runtime; they are configured in the application code or seed data.
-9. The response includes both the limit and current count for each resource type to show usage against limits.
-10. Only members of the organization can view the billing plan; non-members receive 404 Not Found.
-11. The billing plan endpoint is accessible to all roles (owner, admin, member, viewer).
-
-### API
-
-### GET /orgs/:slug/billing/plan
-
-**Response (200 OK):**
-```json
-{
-  "plan": "starter",
-  "price_cents_monthly": 2900,
-  "limits": {
-    "max_members": 10,
-    "max_projects": 10,
-    "max_resources": 500,
-    "max_api_keys": 5
-  },
-  "usage": {
-    "members": 4,
-    "projects": 3,
-    "resources": 47,
-    "api_keys": 2
-  }
-}
-```
-
----
-
-## 9. REQ-TENANT-002: Organization CRUD with tenant isolation
+## 8. REQ-TENANT-002: Organization CRUD with tenant isolation
 
 **Phase:** 2
 
@@ -491,13 +513,32 @@ CREATE TABLE organizations (
 }
 ```
 
+**Response (200 OK):**
+```json
+{
+  "id": 1,
+  "name": "Acme Corporation",
+  "slug": "acme-corp",
+  "plan": "starter",
+  "created_at": "2026-01-15T10:30:00Z",
+  "updated_at": "2026-02-10T09:00:00Z"
+}
+```
+
 ### DELETE /orgs/:slug
 
 **Response (204 No Content)**
 
+**Error (403 Forbidden):**
+```json
+{
+  "error": "only the organization owner can delete the organization"
+}
+```
+
 ---
 
-## 10. REQ-TENANT-003: Tenant isolation enforcement on all queries
+## 9. REQ-TENANT-003: Tenant isolation enforcement on all queries
 
 **Phase:** 2
 
@@ -520,9 +561,11 @@ CREATE TABLE organizations (
 
 ### API
 
-Tenant isolation is a cross-cutting concern enforced on all org-scoped endpoints.
+Tenant isolation is not a single endpoint but a cross-cutting concern enforced on all org-scoped endpoints.
 
-**Example cross-tenant access attempt (user belongs to acme-corp, not other-org):**
+### Example: Cross-Tenant Access Attempt
+
+**Request (user is member of org "acme-corp" but not "other-org"):**
 ```
 GET /orgs/other-org/projects
 Authorization: Bearer <jwt-for-acme-user>
@@ -535,136 +578,24 @@ Authorization: Bearer <jwt-for-acme-user>
 }
 ```
 
----
+### Example: Direct Resource Access Across Tenants
 
-## 11. REQ-ADMIN-001: Platform admin organization management
-
-**Phase:** 5
-
-**Depends on:** REQ-TENANT-002
-
-*Platform operator management capabilities*
-
-### Acceptance Criteria
-
-1. GET /admin/orgs returns a paginated list of all organizations on the platform with usage statistics.
-2. Each organization in the list includes id, name, slug, plan, member_count, project_count, resource_count, is_suspended, and created_at.
-3. GET /admin/orgs supports page, per_page, and plan query parameters for filtering.
-4. PUT /admin/orgs/:slug/suspend suspends the specified organization, blocking member access.
-5. PUT /admin/orgs/:slug/unsuspend restores access to a previously suspended organization.
-6. PUT /admin/orgs/:slug/suspend returns 400 if the organization is already suspended.
-7. PUT /admin/orgs/:slug/unsuspend returns 400 if the organization is not currently suspended.
-8. All /admin/* endpoints return 403 if the authenticated user does not have is_platform_admin=true.
-9. Suspended organizations return 403 with a descriptive message on any member-facing endpoint.
-10. Suspension and unsuspension actions are recorded in the audit log.
-
-### API
-
-### GET /admin/orgs
-
-**Response (200 OK):**
-```json
-{
-  "organizations": [
-    {
-      "id": 1,
-      "name": "Acme Corp",
-      "slug": "acme",
-      "plan": "business",
-      "member_count": 25,
-      "project_count": 18,
-      "resource_count": 1200,
-      "is_suspended": false,
-      "created_at": "2025-06-01T00:00:00Z"
-    }
-  ],
-  "page": 1,
-  "per_page": 20,
-  "total": 1
-}
+**Request (resource 42 belongs to org "other-org"):**
+```
+GET /orgs/acme-corp/resources/42
+Authorization: Bearer <jwt-for-acme-user>
 ```
 
-### PUT /admin/orgs/:slug/suspend
-
-**Response (200 OK):**
+**Response (404 Not Found):**
 ```json
 {
-  "slug": "acme",
-  "is_suspended": true,
-  "suspended_at": "2026-01-15T10:30:00Z"
+  "error": "resource not found"
 }
 ```
 
 ---
 
-## 12. REQ-BILLING-002: Plan upgrade and downgrade
-
-**Phase:** 4
-
-**Depends on:** REQ-BILLING-001
-
-*Revenue management and self-service tier changes*
-
-### Acceptance Criteria
-
-1. PUT /orgs/:slug/billing/plan changes the organization's billing plan.
-2. Only the organization owner can change the plan; admins, members, and viewers receive 403 Forbidden.
-3. Upgrading immediately increases all resource limits to the new plan's values.
-4. Downgrading checks current usage against the new plan's limits before allowing the change.
-5. If current usage exceeds the new plan's limits, the downgrade is rejected with 400 Bad Request and a message indicating which limits are exceeded.
-6. A successful plan change returns 200 OK with the updated plan details and new limits.
-7. Changing to the same plan the organization is already on returns 400 Bad Request.
-8. Changing to an invalid plan name returns 422 Unprocessable Entity.
-9. The plan change is recorded in the audit log.
-10. A notification is created for all organization owners when the plan changes.
-11. The updated_at timestamp on the organization is refreshed.
-
-### API
-
-### PUT /orgs/:slug/billing/plan
-
-**Request:**
-```json
-{
-  "plan": "business"
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "plan": "business",
-  "price_cents_monthly": 9900,
-  "limits": {
-    "max_members": 50,
-    "max_projects": 50,
-    "max_resources": 5000,
-    "max_api_keys": 25
-  },
-  "usage": {
-    "members": 4,
-    "projects": 3,
-    "resources": 47,
-    "api_keys": 2
-  },
-  "previous_plan": "starter"
-}
-```
-
-**Error (400 Bad Request -- downgrade with exceeded limits):**
-```json
-{
-  "error": "cannot downgrade: current usage exceeds free plan limits",
-  "exceeded": {
-    "members": {"current": 4, "limit": 3},
-    "projects": {"current": 3, "limit": 2}
-  }
-}
-```
-
----
-
-## 13. REQ-RBAC-001: Role assignment for organization members
+## 10. REQ-RBAC-001: Role assignment for organization members
 
 **Phase:** 3
 
@@ -707,6 +638,13 @@ Authorization: Bearer <jwt-for-acme-user>
 }
 ```
 
+**Error (403 Forbidden):**
+```json
+{
+  "error": "insufficient permissions to change roles"
+}
+```
+
 **Error (400 Bad Request):**
 ```json
 {
@@ -716,7 +654,7 @@ Authorization: Bearer <jwt-for-acme-user>
 
 ---
 
-## 14. REQ-RBAC-002: Role-based access control middleware
+## 11. REQ-RBAC-002: Role-based access control middleware
 
 **Phase:** 3
 
@@ -736,17 +674,25 @@ Authorization: Bearer <jwt-for-acme-user>
 8. Only owners and admins can manage API keys and webhooks.
 9. Only owners and admins can view the audit log.
 10. A user with insufficient permissions receives 403 Forbidden with a descriptive error message.
-11. The middleware runs after authentication and tenant isolation checks.
+11. The middleware runs after authentication and tenant isolation checks, ensuring the user is both authenticated and a member of the organization.
 12. Platform admins bypass org-level RBAC checks for admin console endpoints only.
 
 ### API
 
 RBAC enforcement is a cross-cutting middleware applied to all org-scoped endpoints.
 
-**Example: Viewer attempting to create a project:**
+### Example: Viewer Attempting to Create a Project
+
+**Request:**
 ```
 POST /orgs/acme-corp/projects
 Authorization: Bearer <jwt-for-viewer>
+```
+```json
+{
+  "name": "New Project",
+  "description": "A project"
+}
 ```
 
 **Response (403 Forbidden):**
@@ -756,9 +702,91 @@ Authorization: Bearer <jwt-for-viewer>
 }
 ```
 
+### Example: Member Attempting to Delete a Project
+
+**Request:**
+```
+DELETE /orgs/acme-corp/projects/1
+Authorization: Bearer <jwt-for-member>
+```
+
+**Response (403 Forbidden):**
+```json
+{
+  "error": "insufficient permissions: member cannot delete projects"
+}
+```
+
 ---
 
-## 15. REQ-RBAC-003: Member management and invitation flow
+## 12. REQ-AUDIT-001: Audit log for all mutations with user and IP context
+
+**Phase:** 3
+
+**Depends on:** REQ-RBAC-002
+
+*Compliance and security visibility*
+
+### Acceptance Criteria
+
+1. Every create operation on organizations, members, projects, resources, API keys, webhooks, and billing records creates an audit log entry.
+2. Every update operation on the above entities creates an audit log entry.
+3. Every delete operation on the above entities creates an audit log entry.
+4. Each audit log entry contains org_id, user_id, action, entity_type, entity_id, details (JSON), ip_address, and timestamp.
+5. The action field is one of: "create", "update", "delete".
+6. The details field contains a JSON representation of the relevant changes or entity state at the time of the action.
+7. The ip_address field captures the client IP from the request.
+8. Audit log entries are append-only: no PUT or DELETE endpoints exist for audit log entries.
+9. Audit log entries are scoped to the organization in which the action occurred.
+10. Audit logging does not block or slow the triggering API response beyond negligible overhead.
+11. Role changes, invitation sends, and invitation acceptances are all recorded as audit events.
+
+### API
+
+### Audit log entry format
+
+Audit log entries are created automatically by the system. They are queried via the endpoint defined in REQ-AUDIT-002.
+
+**Example audit log entry:**
+```json
+{
+  "id": 42,
+  "org_id": 1,
+  "user_id": 2,
+  "action": "create",
+  "entity_type": "project",
+  "entity_id": 5,
+  "details": {
+    "name": "Q4 Report",
+    "description": "Quarterly analysis project"
+  },
+  "ip_address": "192.168.1.100",
+  "timestamp": "2026-01-15T10:30:00Z"
+}
+```
+
+**Example role change audit entry:**
+```json
+{
+  "id": 55,
+  "org_id": 1,
+  "user_id": 1,
+  "action": "update",
+  "entity_type": "membership",
+  "entity_id": 3,
+  "details": {
+    "field": "role",
+    "old_value": "member",
+    "new_value": "admin"
+  },
+  "ip_address": "10.0.0.5",
+  "timestamp": "2026-01-16T14:00:00Z"
+}
+```
+
+---
+
+## 13. REQ-RBAC-003: Member management and invitation flow
 
 **Phase:** 3
 
@@ -807,6 +835,13 @@ Authorization: Bearer <jwt-for-viewer>
 }
 ```
 
+**Error (409 Conflict):**
+```json
+{
+  "error": "user is already a member of this organization"
+}
+```
+
 ### POST /invitations/:token/accept
 
 **Response (200 OK):**
@@ -819,13 +854,328 @@ Authorization: Bearer <jwt-for-viewer>
 }
 ```
 
+**Error (404 Not Found):**
+```json
+{
+  "error": "invitation not found or expired"
+}
+```
+
 ### DELETE /orgs/:slug/members/:user_id
 
 **Response (204 No Content)**
 
+**Error (400 Bad Request):**
+```json
+{
+  "error": "cannot remove the last owner of the organization"
+}
+```
+
 ---
 
-## 16. REQ-PROJ-001: Project CRUD within organization
+## 14. REQ-AUDIT-002: Audit log querying with filters
+
+**Phase:** 4
+
+**Depends on:** REQ-AUDIT-001
+
+*Audit investigation and compliance reporting*
+
+### Acceptance Criteria
+
+1. GET /orgs/:slug/audit-log returns a paginated list of audit log entries for the organization, newest first.
+2. GET /orgs/:slug/audit-log supports filtering by entity_type query parameter (e.g., project, resource, membership).
+3. GET /orgs/:slug/audit-log supports filtering by user_id query parameter.
+4. GET /orgs/:slug/audit-log supports filtering by action query parameter (create, update, delete).
+5. GET /orgs/:slug/audit-log supports filtering by start_date and end_date query parameters in ISO 8601 format.
+6. GET /orgs/:slug/audit-log supports page and per_page query parameters with defaults of page=1 and per_page=20.
+7. GET /orgs/:slug/audit-log returns 403 if the authenticated user is not an owner or admin of the organization.
+8. Results are scoped to the current organization; no cross-tenant audit data is accessible.
+9. Multiple filters can be combined in a single query (e.g., entity_type=project AND user_id=5 AND action=delete).
+10. The total count of matching entries is returned in the response for pagination.
+
+### API
+
+### GET /orgs/:slug/audit-log
+
+**Request:**
+```
+GET /orgs/acme/audit-log?entity_type=project&user_id=2&action=create&start_date=2026-01-01T00:00:00Z&end_date=2026-01-31T23:59:59Z&page=1&per_page=20
+Authorization: Bearer <token>
+```
+
+**Response (200 OK):**
+```json
+{
+  "entries": [
+    {
+      "id": 42,
+      "org_id": 1,
+      "user_id": 2,
+      "action": "create",
+      "entity_type": "project",
+      "entity_id": 5,
+      "details": {
+        "name": "Q4 Report",
+        "description": "Quarterly analysis project"
+      },
+      "ip_address": "192.168.1.100",
+      "timestamp": "2026-01-15T10:30:00Z"
+    }
+  ],
+  "page": 1,
+  "per_page": 20,
+  "total": 1
+}
+```
+
+**Error (403 Forbidden):**
+```json
+{
+  "error": "admin access required"
+}
+```
+
+---
+
+## 15. REQ-NOTIF-001: Notification system infrastructure
+
+**Phase:** 4
+
+**Depends on:** REQ-RBAC-003
+
+*In-app notification delivery*
+
+### Acceptance Criteria
+
+1. GET /notifications returns a paginated list of the authenticated user's notifications, newest first.
+2. GET /notifications supports page and per_page query parameters with defaults of page=1 and per_page=20.
+3. Each notification includes id, user_id, org_id, type, title, body, is_read, and created_at fields.
+4. PUT /notifications/:id/read marks the specified notification as read and returns the updated notification.
+5. PUT /notifications/:id/read returns 404 if the notification does not exist or belongs to another user.
+6. POST /notifications/read-all marks all of the authenticated user's unread notifications as read.
+7. POST /notifications/read-all returns the count of notifications that were marked as read.
+8. Newly created notifications have is_read set to false by default.
+9. Users can only access their own notifications; no cross-user notification access is permitted.
+10. GET /notifications returns 401 if the user is not authenticated.
+
+### API
+
+### GET /notifications
+
+**Request:**
+```
+GET /notifications?page=1&per_page=20
+Authorization: Bearer <token>
+```
+
+**Response (200 OK):**
+```json
+{
+  "notifications": [
+    {
+      "id": 12,
+      "user_id": 3,
+      "org_id": 1,
+      "type": "invitation_received",
+      "title": "You have been invited",
+      "body": "You have been invited to join Acme Corp as a member.",
+      "is_read": false,
+      "created_at": "2026-01-20T14:00:00Z"
+    },
+    {
+      "id": 8,
+      "user_id": 3,
+      "org_id": 2,
+      "type": "role_changed",
+      "title": "Role Updated",
+      "body": "Your role in Widget Inc has been changed to admin.",
+      "is_read": true,
+      "created_at": "2026-01-19T10:00:00Z"
+    }
+  ],
+  "page": 1,
+  "per_page": 20,
+  "total": 2
+}
+```
+
+### PUT /notifications/:id/read
+
+**Response (200 OK):**
+```json
+{
+  "id": 12,
+  "user_id": 3,
+  "org_id": 1,
+  "type": "invitation_received",
+  "title": "You have been invited",
+  "body": "You have been invited to join Acme Corp as a member.",
+  "is_read": true,
+  "created_at": "2026-01-20T14:00:00Z"
+}
+```
+
+**Error (404 Not Found):**
+```json
+{
+  "error": "notification not found"
+}
+```
+
+### POST /notifications/read-all
+
+**Response (200 OK):**
+```json
+{
+  "marked_read": 5
+}
+```
+
+---
+
+## 16. REQ-BILLING-001: Billing plan definitions and limits
+
+**Phase:** 4
+
+**Depends on:** REQ-TENANT-001
+
+*Plans define the resource limits for each org*
+
+### Acceptance Criteria
+
+1. The system defines four billing plans: free, starter, business, and enterprise.
+2. The free plan allows 3 members, 2 projects, 50 resources, and 1 API key at $0/month.
+3. The starter plan allows 10 members, 10 projects, 500 resources, and 5 API keys at $29/month.
+4. The business plan allows 50 members, 50 projects, 5000 resources, and 25 API keys at $99/month.
+5. The enterprise plan allows unlimited members, projects, resources, and API keys at $299/month.
+6. GET /orgs/:slug/billing/plan returns the current plan name, limits, current usage counts, and price.
+7. New organizations are assigned the "free" plan by default.
+8. Plan definitions are immutable at runtime; they are configured in the application code or seed data.
+9. The response includes both the limit and current count for each resource type to show usage against limits.
+10. Only members of the organization can view the billing plan; non-members receive 404 Not Found.
+11. The billing plan endpoint is accessible to all roles (owner, admin, member, viewer).
+
+### API
+
+### GET /orgs/:slug/billing/plan
+
+**Response (200 OK):**
+```json
+{
+  "plan": "starter",
+  "price_cents_monthly": 2900,
+  "limits": {
+    "max_members": 10,
+    "max_projects": 10,
+    "max_resources": 500,
+    "max_api_keys": 5
+  },
+  "usage": {
+    "members": 4,
+    "projects": 3,
+    "resources": 47,
+    "api_keys": 2
+  }
+}
+```
+
+### Plan Definitions Reference
+
+```json
+[
+  {"plan": "free", "max_members": 3, "max_projects": 2, "max_resources": 50, "max_api_keys": 1, "price_cents_monthly": 0},
+  {"plan": "starter", "max_members": 10, "max_projects": 10, "max_resources": 500, "max_api_keys": 5, "price_cents_monthly": 2900},
+  {"plan": "business", "max_members": 50, "max_projects": 50, "max_resources": 5000, "max_api_keys": 25, "price_cents_monthly": 9900},
+  {"plan": "enterprise", "max_members": -1, "max_projects": -1, "max_resources": -1, "max_api_keys": -1, "price_cents_monthly": 29900}
+]
+```
+
+---
+
+## 17. REQ-BILLING-002: Plan upgrade and downgrade
+
+**Phase:** 4
+
+**Depends on:** REQ-BILLING-001
+
+*Revenue management and self-service tier changes*
+
+### Acceptance Criteria
+
+1. PUT /orgs/:slug/billing/plan changes the organization's billing plan.
+2. Only the organization owner can change the plan; admins, members, and viewers receive 403 Forbidden.
+3. Upgrading immediately increases all resource limits to the new plan's values.
+4. Downgrading checks current usage against the new plan's limits before allowing the change.
+5. If current usage exceeds the new plan's limits, the downgrade is rejected with 400 Bad Request and a message indicating which limits are exceeded.
+6. A successful plan change returns 200 OK with the updated plan details and new limits.
+7. Changing to the same plan the organization is already on returns 400 Bad Request.
+8. Changing to an invalid plan name returns 422 Unprocessable Entity.
+9. The plan change is recorded in the audit log.
+10. A notification is created for all organization owners when the plan changes.
+11. The updated_at timestamp on the organization is refreshed.
+
+### API
+
+### PUT /orgs/:slug/billing/plan
+
+**Request (upgrade):**
+```json
+{
+  "plan": "business"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "plan": "business",
+  "price_cents_monthly": 9900,
+  "limits": {
+    "max_members": 50,
+    "max_projects": 50,
+    "max_resources": 5000,
+    "max_api_keys": 25
+  },
+  "usage": {
+    "members": 4,
+    "projects": 3,
+    "resources": 47,
+    "api_keys": 2
+  },
+  "previous_plan": "starter"
+}
+```
+
+**Error (400 Bad Request - downgrade with exceeded limits):**
+```json
+{
+  "error": "cannot downgrade: current usage exceeds free plan limits",
+  "exceeded": {
+    "members": {"current": 4, "limit": 3},
+    "projects": {"current": 3, "limit": 2}
+  }
+}
+```
+
+**Error (403 Forbidden):**
+```json
+{
+  "error": "only the organization owner can change the billing plan"
+}
+```
+
+**Error (422 Unprocessable Entity):**
+```json
+{
+  "error": "invalid plan: 'premium' is not a valid plan name"
+}
+```
+
+---
+
+## 18. REQ-PROJ-001: Project CRUD within organization
 
 **Phase:** 4
 
@@ -889,9 +1239,286 @@ Authorization: Bearer <jwt-for-viewer>
 ]
 ```
 
+### PUT /orgs/:slug/projects/:id
+
+**Request:**
+```json
+{
+  "name": "Website Redesign v2",
+  "description": "Updated scope for Q3"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "id": 1,
+  "org_id": 1,
+  "name": "Website Redesign v2",
+  "description": "Updated scope for Q3",
+  "is_archived": false,
+  "created_at": "2026-02-01T10:00:00Z",
+  "updated_at": "2026-03-15T14:00:00Z"
+}
+```
+
 ---
 
-## 17. REQ-APIKEY-001: API key creation and management
+## 19. REQ-PROJ-002: Project archival and restoration
+
+**Phase:** 4
+
+**Depends on:** REQ-PROJ-001
+
+*Lifecycle management for completed projects*
+
+### Acceptance Criteria
+
+1. POST /orgs/:slug/projects/:id/archive sets the project's is_archived flag to true.
+2. POST /orgs/:slug/projects/:id/unarchive sets the project's is_archived flag to false.
+3. Only owners and admins can archive or unarchive projects; members and viewers receive 403 Forbidden.
+4. Archiving an already-archived project returns 400 Bad Request.
+5. Unarchiving a non-archived project returns 400 Bad Request.
+6. Archived projects are excluded from GET /orgs/:slug/projects by default.
+7. Archived projects are included when GET /orgs/:slug/projects?archived=true is specified.
+8. Resources within an archived project remain accessible for read operations but cannot be created or updated.
+9. A successful archive or unarchive returns 200 OK with the updated project details.
+10. The updated_at timestamp is refreshed on archive and unarchive operations.
+
+### API
+
+### POST /orgs/:slug/projects/:id/archive
+
+**Response (200 OK):**
+```json
+{
+  "id": 1,
+  "org_id": 1,
+  "name": "Website Redesign",
+  "description": "Q2 website overhaul project",
+  "is_archived": true,
+  "created_at": "2026-02-01T10:00:00Z",
+  "updated_at": "2026-04-01T09:00:00Z"
+}
+```
+
+### POST /orgs/:slug/projects/:id/unarchive
+
+**Response (200 OK):**
+```json
+{
+  "id": 1,
+  "org_id": 1,
+  "name": "Website Redesign",
+  "description": "Q2 website overhaul project",
+  "is_archived": false,
+  "created_at": "2026-02-01T10:00:00Z",
+  "updated_at": "2026-04-05T11:00:00Z"
+}
+```
+
+**Error (403 Forbidden):**
+```json
+{
+  "error": "insufficient permissions: member cannot archive projects"
+}
+```
+
+---
+
+## 20. REQ-PROJ-003: Project deletion with resource cascade
+
+**Phase:** 4
+
+**Depends on:** REQ-PROJ-002
+
+*Permanent data removal with cascading cleanup*
+
+### Acceptance Criteria
+
+1. DELETE /orgs/:slug/projects/:id permanently deletes the project.
+2. All resources belonging to the deleted project are permanently removed.
+3. Only owners and admins can delete projects; members and viewers receive 403 Forbidden.
+4. A successful deletion returns 204 No Content.
+5. Deleting a non-existent project returns 404 Not Found.
+6. Deleting a project in another organization returns 404 Not Found (tenant isolation).
+7. An audit log entry is created for the deletion before the project is removed.
+8. Webhook events (project.deleted) are fired before the project data is removed.
+9. The deletion cascades atomically; if any part fails, the entire operation rolls back.
+10. Archived projects can also be deleted.
+
+### API
+
+### DELETE /orgs/:slug/projects/:id
+
+**Response (204 No Content)**
+
+**Error (403 Forbidden):**
+```json
+{
+  "error": "insufficient permissions: member cannot delete projects"
+}
+```
+
+**Error (404 Not Found):**
+```json
+{
+  "error": "project not found"
+}
+```
+
+---
+
+## 21. REQ-ADMIN-001: Platform admin org listing and management
+
+**Phase:** 5
+
+**Depends on:** REQ-TENANT-002
+
+*Platform operator management capabilities*
+
+### Acceptance Criteria
+
+1. GET /admin/orgs returns a paginated list of all organizations on the platform with usage statistics.
+2. Each organization in the list includes id, name, slug, plan, member_count, project_count, resource_count, is_suspended, and created_at.
+3. GET /admin/orgs supports page, per_page, and plan query parameters for filtering.
+4. PUT /admin/orgs/:slug/suspend suspends the specified organization, blocking member access.
+5. PUT /admin/orgs/:slug/unsuspend restores access to a previously suspended organization.
+6. PUT /admin/orgs/:slug/suspend returns 400 if the organization is already suspended.
+7. PUT /admin/orgs/:slug/unsuspend returns 400 if the organization is not currently suspended.
+8. All /admin/* endpoints return 403 if the authenticated user does not have is_platform_admin=true.
+9. Suspended organizations return 403 with a descriptive message on any member-facing endpoint.
+10. Suspension and unsuspension actions are recorded in the audit log.
+
+### API
+
+### GET /admin/orgs
+
+**Request:**
+```
+GET /admin/orgs?page=1&per_page=20&plan=business
+Authorization: Bearer <admin_token>
+```
+
+**Response (200 OK):**
+```json
+{
+  "organizations": [
+    {
+      "id": 1,
+      "name": "Acme Corp",
+      "slug": "acme",
+      "plan": "business",
+      "member_count": 25,
+      "project_count": 18,
+      "resource_count": 1200,
+      "is_suspended": false,
+      "created_at": "2025-06-01T00:00:00Z"
+    },
+    {
+      "id": 3,
+      "name": "Widget Inc",
+      "slug": "widget",
+      "plan": "business",
+      "member_count": 12,
+      "project_count": 8,
+      "resource_count": 450,
+      "is_suspended": false,
+      "created_at": "2025-09-15T00:00:00Z"
+    }
+  ],
+  "page": 1,
+  "per_page": 20,
+  "total": 2
+}
+```
+
+### PUT /admin/orgs/:slug/suspend
+
+**Response (200 OK):**
+```json
+{
+  "slug": "acme",
+  "is_suspended": true,
+  "suspended_at": "2026-01-15T10:30:00Z"
+}
+```
+
+**Error (403 Forbidden):**
+```json
+{
+  "error": "platform admin access required"
+}
+```
+
+---
+
+## 22. REQ-NOTIF-002: Automated lifecycle notifications
+
+**Phase:** 5
+
+**Depends on:** REQ-NOTIF-001
+
+*Keep members informed of org changes*
+
+### Acceptance Criteria
+
+1. When a user receives an invitation, a notification of type "invitation_received" is created for the invited user.
+2. When an invitation is accepted, a notification of type "invitation_accepted" is created for the user who sent the invitation.
+3. When a member's role is changed, a notification of type "role_changed" is created for the affected member.
+4. When a member is removed from an organization, a notification of type "member_removed" is created for the removed user.
+5. When a project is archived, a notification of type "project_archived" is created for all members of the organization.
+6. When a project is deleted, a notification of type "project_deleted" is created for all members of the organization.
+7. When an organization's billing plan is changed, a notification of type "plan_changed" is created for the organization owner.
+8. When usage reaches 80% of a plan limit, a notification of type "quota_warning" is created for organization owners and admins.
+9. Each automated notification includes a descriptive title and body with relevant context (org name, project name, role, etc.).
+10. Automated notifications are created asynchronously and do not block the triggering API response.
+
+### API
+
+Not applicable. This requirement covers automatic notification creation triggered by other endpoints. Notifications are accessed via the endpoints defined in REQ-NOTIF-001.
+
+### Example notification payloads
+
+**Invitation received:**
+```json
+{
+  "type": "invitation_received",
+  "title": "Organization Invitation",
+  "body": "You have been invited to join Acme Corp as a member."
+}
+```
+
+**Role changed:**
+```json
+{
+  "type": "role_changed",
+  "title": "Role Updated",
+  "body": "Your role in Acme Corp has been changed to admin."
+}
+```
+
+**Plan changed:**
+```json
+{
+  "type": "plan_changed",
+  "title": "Plan Updated",
+  "body": "Acme Corp plan has been changed from starter to business."
+}
+```
+
+**Quota warning:**
+```json
+{
+  "type": "quota_warning",
+  "title": "Usage Limit Warning",
+  "body": "Acme Corp has used 82% of its project quota (41 of 50)."
+}
+```
+
+---
+
+## 23. REQ-APIKEY-001: API key creation and management
 
 **Phase:** 5
 
@@ -963,180 +1590,89 @@ Authorization: Bearer <jwt-for-viewer>
 
 **Response (204 No Content)**
 
+**Error (403 Forbidden):**
+```json
+{
+  "error": "insufficient permissions: member cannot manage API keys"
+}
+```
+
 ---
 
-## 18. REQ-WEBHOOK-001: Webhook registration and management
+## 24. REQ-APIKEY-002: API key authentication middleware
 
-**Phase:** 6
+**Phase:** 5
 
-**Depends on:** REQ-RBAC-002
+**Depends on:** REQ-APIKEY-001
 
-*Event-driven integration with external systems*
+*API keys provide alternative to JWT for automation*
 
 ### Acceptance Criteria
 
-1. POST /orgs/:slug/webhooks creates a new webhook with url, events, secret, and is_active fields.
-2. POST /orgs/:slug/webhooks auto-generates a cryptographically random secret if none is provided.
-3. POST /orgs/:slug/webhooks returns 403 if the authenticated user is not an owner or admin.
-4. POST /orgs/:slug/webhooks validates that the events array contains only recognized event types.
-5. GET /orgs/:slug/webhooks returns a list of all webhooks for the organization.
-6. GET /orgs/:slug/webhooks does not expose the webhook secret in list responses.
-7. PUT /orgs/:slug/webhooks/:id updates the webhook url, events, or is_active status.
-8. PUT /orgs/:slug/webhooks/:id allows regenerating the secret by passing a new value.
-9. DELETE /orgs/:slug/webhooks/:id deletes the webhook and all associated delivery records.
-10. Recognized event types are: member.joined, member.removed, project.created, project.archived, project.deleted, resource.created, resource.updated, resource.deleted.
-11. All webhook CRUD operations are scoped to the current organization via tenant isolation.
+1. The middleware accepts an X-API-Key header on all org-scoped endpoints.
+2. A valid API key authenticates the request and resolves the associated organization.
+3. An invalid or revoked API key returns 401 Unauthorized.
+4. An expired API key returns 401 Unauthorized with a message indicating expiration.
+5. The middleware updates the last_used_at timestamp on successful authentication.
+6. When both Authorization (JWT) and X-API-Key headers are provided, JWT takes precedence.
+7. API key authentication sets the org context but does not set a user context (user_id is null in audit logs for API key requests).
+8. The middleware identifies the key by matching the prefix, then validates by comparing the full key hash.
+9. Requests without any authentication header to protected endpoints return 401 Unauthorized.
+10. API key authentication enforces tenant isolation; the key can only access data within its associated organization.
 
 ### API
 
-### POST /orgs/:slug/webhooks
+API key authentication is a cross-cutting middleware, not a standalone endpoint.
+
+### Example: Accessing Resources via API Key
 
 **Request:**
+```
+GET /orgs/acme-corp/projects
+X-API-Key: rtmx_k8f9a2b1c3d4e5f6g7h8i9j0k1l2m3n4
+```
+
+**Response (200 OK):**
+```json
+[
+  {
+    "id": 1,
+    "org_id": 1,
+    "name": "Website Redesign",
+    "description": "Q2 website overhaul project",
+    "is_archived": false,
+    "created_at": "2026-02-01T10:00:00Z"
+  }
+]
+```
+
+### Example: Invalid API Key
+
+**Request:**
+```
+GET /orgs/acme-corp/projects
+X-API-Key: rtmx_invalid_key_value
+```
+
+**Response (401 Unauthorized):**
 ```json
 {
-  "url": "https://example.com/webhook",
-  "events": ["project.created", "resource.created", "resource.updated"],
-  "is_active": true
+  "error": "invalid API key"
 }
 ```
 
-**Response (201 Created):**
+### Example: Expired API Key
+
+**Response (401 Unauthorized):**
 ```json
 {
-  "id": 1,
-  "org_id": 1,
-  "url": "https://example.com/webhook",
-  "events": ["project.created", "resource.created", "resource.updated"],
-  "secret": "whsec_a1b2c3d4e5f6g7h8",
-  "is_active": true,
-  "created_at": "2026-01-15T10:30:00Z"
-}
-```
-
-### DELETE /orgs/:slug/webhooks/:id
-
-**Response (204 No Content)**
-
----
-
-## 19. REQ-AUDIT-001: Audit log for all mutations with user and IP context
-
-**Phase:** 3
-
-**Depends on:** REQ-RBAC-002
-
-*Compliance and security visibility*
-
-### Acceptance Criteria
-
-1. Every create operation on organizations, members, projects, resources, API keys, webhooks, and billing records creates an audit log entry.
-2. Every update operation on the above entities creates an audit log entry.
-3. Every delete operation on the above entities creates an audit log entry.
-4. Each audit log entry contains org_id, user_id, action, entity_type, entity_id, details (JSON), ip_address, and timestamp.
-5. The action field is one of: "create", "update", "delete".
-6. The details field contains a JSON representation of the relevant changes or entity state at the time of the action.
-7. The ip_address field captures the client IP from the request.
-8. Audit log entries are append-only: no PUT or DELETE endpoints exist for audit log entries.
-9. Audit log entries are scoped to the organization in which the action occurred.
-10. Audit logging does not block or slow the triggering API response beyond negligible overhead.
-11. Role changes, invitation sends, and invitation acceptances are all recorded as audit events.
-
-### API
-
-**Example audit log entry:**
-```json
-{
-  "id": 42,
-  "org_id": 1,
-  "user_id": 2,
-  "action": "create",
-  "entity_type": "project",
-  "entity_id": 5,
-  "details": {
-    "name": "Q4 Report",
-    "description": "Quarterly analysis project"
-  },
-  "ip_address": "192.168.1.100",
-  "timestamp": "2026-01-15T10:30:00Z"
+  "error": "API key has expired"
 }
 ```
 
 ---
 
-## 20. REQ-NOTIF-001: Notification system infrastructure
-
-**Phase:** 4
-
-**Depends on:** REQ-RBAC-003
-
-*In-app notification delivery*
-
-### Acceptance Criteria
-
-1. GET /notifications returns a paginated list of the authenticated user's notifications, newest first.
-2. GET /notifications supports page and per_page query parameters with defaults of page=1 and per_page=20.
-3. Each notification includes id, user_id, org_id, type, title, body, is_read, and created_at fields.
-4. PUT /notifications/:id/read marks the specified notification as read and returns the updated notification.
-5. PUT /notifications/:id/read returns 404 if the notification does not exist or belongs to another user.
-6. POST /notifications/read-all marks all of the authenticated user's unread notifications as read.
-7. POST /notifications/read-all returns the count of notifications that were marked as read.
-8. Newly created notifications have is_read set to false by default.
-9. Users can only access their own notifications; no cross-user notification access is permitted.
-10. GET /notifications returns 401 if the user is not authenticated.
-
-### API
-
-### GET /notifications
-
-**Response (200 OK):**
-```json
-{
-  "notifications": [
-    {
-      "id": 12,
-      "user_id": 3,
-      "org_id": 1,
-      "type": "invitation_received",
-      "title": "You have been invited",
-      "body": "You have been invited to join Acme Corp as a member.",
-      "is_read": false,
-      "created_at": "2026-01-20T14:00:00Z"
-    }
-  ],
-  "page": 1,
-  "per_page": 20,
-  "total": 1
-}
-```
-
-### PUT /notifications/:id/read
-
-**Response (200 OK):**
-```json
-{
-  "id": 12,
-  "user_id": 3,
-  "org_id": 1,
-  "type": "invitation_received",
-  "title": "You have been invited",
-  "body": "You have been invited to join Acme Corp as a member.",
-  "is_read": true,
-  "created_at": "2026-01-20T14:00:00Z"
-}
-```
-
-### POST /notifications/read-all
-
-**Response (200 OK):**
-```json
-{
-  "marked_read": 5
-}
-```
-
----
-
-## 21. REQ-QUOTA-001: Quota enforcement on create operations
+## 25. REQ-QUOTA-001: Quota enforcement on create operations
 
 **Phase:** 5
 
@@ -1160,10 +1696,19 @@ Authorization: Bearer <jwt-for-viewer>
 
 ### API
 
-**Example: Creating a project when quota is exceeded:**
+Quota enforcement is a cross-cutting concern on all create endpoints, not a standalone API.
+
+### Example: Creating a Project When Quota is Exceeded
+
+**Request:**
 ```
 POST /orgs/acme-corp/projects
 Authorization: Bearer <jwt-token>
+```
+```json
+{
+  "name": "Another Project"
+}
 ```
 
 **Response (402 Payment Required):**
@@ -1178,64 +1723,35 @@ Authorization: Bearer <jwt-token>
 }
 ```
 
----
+### Example: Creating a Resource When Quota is Exceeded
 
-## 22. REQ-PROJ-002: Project archival and restoration
-
-**Phase:** 4
-
-**Depends on:** REQ-PROJ-001
-
-*Lifecycle management for completed projects*
-
-### Acceptance Criteria
-
-1. POST /orgs/:slug/projects/:id/archive sets the project's is_archived flag to true.
-2. POST /orgs/:slug/projects/:id/unarchive sets the project's is_archived flag to false.
-3. Only owners and admins can archive or unarchive projects; members and viewers receive 403 Forbidden.
-4. Archiving an already-archived project returns 400 Bad Request.
-5. Unarchiving a non-archived project returns 400 Bad Request.
-6. Archived projects are excluded from GET /orgs/:slug/projects by default.
-7. Archived projects are included when GET /orgs/:slug/projects?archived=true is specified.
-8. Resources within an archived project remain accessible for read operations but cannot be created or updated.
-9. A successful archive or unarchive returns 200 OK with the updated project details.
-10. The updated_at timestamp is refreshed on archive and unarchive operations.
-
-### API
-
-### POST /orgs/:slug/projects/:id/archive
-
-**Response (200 OK):**
+**Request:**
+```
+POST /orgs/acme-corp/projects/1/resources
+Authorization: Bearer <jwt-token>
+```
 ```json
 {
-  "id": 1,
-  "org_id": 1,
-  "name": "Website Redesign",
-  "description": "Q2 website overhaul project",
-  "is_archived": true,
-  "created_at": "2026-02-01T10:00:00Z",
-  "updated_at": "2026-04-01T09:00:00Z"
+  "name": "New Resource",
+  "type": "compute"
 }
 ```
 
-### POST /orgs/:slug/projects/:id/unarchive
-
-**Response (200 OK):**
+**Response (402 Payment Required):**
 ```json
 {
-  "id": 1,
-  "org_id": 1,
-  "name": "Website Redesign",
-  "description": "Q2 website overhaul project",
-  "is_archived": false,
-  "created_at": "2026-02-01T10:00:00Z",
-  "updated_at": "2026-04-05T11:00:00Z"
+  "error": "plan limit exceeded",
+  "limit": "max_resources",
+  "current": 50,
+  "max": 50,
+  "plan": "free",
+  "message": "upgrade your plan to create more resources"
 }
 ```
 
 ---
 
-## 23. REQ-RES-001: Resource CRUD within projects
+## 26. REQ-RES-001: Resource CRUD within projects
 
 **Phase:** 5
 
@@ -1293,6 +1809,38 @@ Authorization: Bearer <jwt-token>
 }
 ```
 
+### PUT /orgs/:slug/resources/:id
+
+**Request:**
+```json
+{
+  "name": "Production DB (Primary)",
+  "metadata": {
+    "engine": "postgresql",
+    "version": "16",
+    "region": "us-east-1"
+  }
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "id": 1,
+  "project_id": 1,
+  "name": "Production DB (Primary)",
+  "type": "database",
+  "metadata": {
+    "engine": "postgresql",
+    "version": "16",
+    "region": "us-east-1"
+  },
+  "status": "active",
+  "created_at": "2026-02-15T10:00:00Z",
+  "updated_at": "2026-03-01T08:00:00Z"
+}
+```
+
 ### DELETE /orgs/:slug/resources/:id
 
 **Response (200 OK):**
@@ -1300,7 +1848,7 @@ Authorization: Bearer <jwt-token>
 {
   "id": 1,
   "project_id": 1,
-  "name": "Production Database",
+  "name": "Production DB (Primary)",
   "type": "database",
   "status": "deleted",
   "updated_at": "2026-03-10T16:00:00Z"
@@ -1309,255 +1857,7 @@ Authorization: Bearer <jwt-token>
 
 ---
 
-## 24. REQ-APIKEY-002: API key authentication middleware
-
-**Phase:** 5
-
-**Depends on:** REQ-APIKEY-001
-
-*API keys provide alternative to JWT for automation*
-
-### Acceptance Criteria
-
-1. The middleware accepts an X-API-Key header on all org-scoped endpoints.
-2. A valid API key authenticates the request and resolves the associated organization.
-3. An invalid or revoked API key returns 401 Unauthorized.
-4. An expired API key returns 401 Unauthorized with a message indicating expiration.
-5. The middleware updates the last_used_at timestamp on successful authentication.
-6. When both Authorization (JWT) and X-API-Key headers are provided, JWT takes precedence.
-7. API key authentication sets the org context but does not set a user context (user_id is null in audit logs for API key requests).
-8. The middleware identifies the key by matching the prefix, then validates by comparing the full key hash.
-9. Requests without any authentication header to protected endpoints return 401 Unauthorized.
-10. API key authentication enforces tenant isolation; the key can only access data within its associated organization.
-
-### API
-
-**Example: Accessing resources via API key:**
-```
-GET /orgs/acme-corp/projects
-X-API-Key: rtmx_k8f9a2b1c3d4e5f6g7h8i9j0k1l2m3n4
-```
-
-**Response (200 OK):**
-```json
-[
-  {
-    "id": 1,
-    "org_id": 1,
-    "name": "Website Redesign",
-    "description": "Q2 website overhaul project",
-    "is_archived": false,
-    "created_at": "2026-02-01T10:00:00Z"
-  }
-]
-```
-
-**Example: Invalid API key:**
-
-**Response (401 Unauthorized):**
-```json
-{
-  "error": "invalid API key"
-}
-```
-
----
-
-## 25. REQ-WEBHOOK-002: Webhook event delivery with HMAC signing
-
-**Phase:** 6
-
-**Depends on:** REQ-WEBHOOK-001
-
-*Secure event delivery to registered endpoints*
-
-### Acceptance Criteria
-
-1. When a subscribed event occurs, the system sends an HTTP POST to each active webhook registered for that event type.
-2. The request body contains a JSON payload with event_type, timestamp, org_id, and event-specific data.
-3. The payload is signed with HMAC-SHA256 using the webhook's secret key.
-4. The signature is included in the X-Webhook-Signature header as sha256=<hex_digest>.
-5. The delivery request includes a Content-Type: application/json header.
-6. The delivery request includes an X-Webhook-Event header with the event type.
-7. A delivery is considered successful if the endpoint returns a 2xx status code.
-8. Each delivery attempt is recorded in the webhook_deliveries table with webhook_id, event_type, payload, status_code, response_body, and delivered_at.
-9. Inactive webhooks (is_active=false) do not receive deliveries.
-10. Webhook deliveries do not block the API response that triggered the event.
-11. If the endpoint does not respond within 10 seconds, the delivery is marked as timed out with status_code 0.
-
-### API
-
-**Webhook delivery payload format:**
-```
-POST https://example.com/webhook
-Content-Type: application/json
-X-Webhook-Event: project.created
-X-Webhook-Signature: sha256=5d41402abc4b2a76b9719d911017c592
-```
-
-```json
-{
-  "event_type": "project.created",
-  "timestamp": "2026-01-15T10:30:00Z",
-  "org_id": 1,
-  "data": {
-    "id": 5,
-    "name": "New Project",
-    "description": "A newly created project",
-    "created_at": "2026-01-15T10:30:00Z"
-  }
-}
-```
-
----
-
-## 26. REQ-AUDIT-002: Audit log querying with filters
-
-**Phase:** 4
-
-**Depends on:** REQ-AUDIT-001
-
-*Audit investigation and compliance reporting*
-
-### Acceptance Criteria
-
-1. GET /orgs/:slug/audit-log returns a paginated list of audit log entries for the organization, newest first.
-2. GET /orgs/:slug/audit-log supports filtering by entity_type query parameter (e.g., project, resource, membership).
-3. GET /orgs/:slug/audit-log supports filtering by user_id query parameter.
-4. GET /orgs/:slug/audit-log supports filtering by action query parameter (create, update, delete).
-5. GET /orgs/:slug/audit-log supports filtering by start_date and end_date query parameters in ISO 8601 format.
-6. GET /orgs/:slug/audit-log supports page and per_page query parameters with defaults of page=1 and per_page=20.
-7. GET /orgs/:slug/audit-log returns 403 if the authenticated user is not an owner or admin of the organization.
-8. Results are scoped to the current organization; no cross-tenant audit data is accessible.
-9. Multiple filters can be combined in a single query (e.g., entity_type=project AND user_id=5 AND action=delete).
-10. The total count of matching entries is returned in the response for pagination.
-
-### API
-
-### GET /orgs/:slug/audit-log
-
-**Request:**
-```
-GET /orgs/acme/audit-log?entity_type=project&user_id=2&action=create&page=1&per_page=20
-Authorization: Bearer <token>
-```
-
-**Response (200 OK):**
-```json
-{
-  "entries": [
-    {
-      "id": 42,
-      "org_id": 1,
-      "user_id": 2,
-      "action": "create",
-      "entity_type": "project",
-      "entity_id": 5,
-      "details": {
-        "name": "Q4 Report",
-        "description": "Quarterly analysis project"
-      },
-      "ip_address": "192.168.1.100",
-      "timestamp": "2026-01-15T10:30:00Z"
-    }
-  ],
-  "page": 1,
-  "per_page": 20,
-  "total": 1
-}
-```
-
----
-
-## 27. REQ-NOTIF-002: Automated lifecycle notifications
-
-**Phase:** 5
-
-**Depends on:** REQ-NOTIF-001
-
-*Keep members informed of org changes*
-
-### Acceptance Criteria
-
-1. When a user receives an invitation, a notification of type "invitation_received" is created for the invited user.
-2. When an invitation is accepted, a notification of type "invitation_accepted" is created for the user who sent the invitation.
-3. When a member's role is changed, a notification of type "role_changed" is created for the affected member.
-4. When a member is removed from an organization, a notification of type "member_removed" is created for the removed user.
-5. When a project is archived, a notification of type "project_archived" is created for all members of the organization.
-6. When a project is deleted, a notification of type "project_deleted" is created for all members of the organization.
-7. When an organization's billing plan is changed, a notification of type "plan_changed" is created for the organization owner.
-8. When usage reaches 80% of a plan limit, a notification of type "quota_warning" is created for organization owners and admins.
-9. Each automated notification includes a descriptive title and body with relevant context (org name, project name, role, etc.).
-10. Automated notifications are created asynchronously and do not block the triggering API response.
-
-### API
-
-Not applicable. Notifications are accessed via the endpoints defined in REQ-NOTIF-001.
-
-**Example notification payloads:**
-
-```json
-{
-  "type": "invitation_received",
-  "title": "Organization Invitation",
-  "body": "You have been invited to join Acme Corp as a member."
-}
-```
-
-```json
-{
-  "type": "plan_changed",
-  "title": "Plan Updated",
-  "body": "Acme Corp plan has been changed from starter to business."
-}
-```
-
----
-
-## 28. REQ-PROJ-003: Project deletion with resource cascade
-
-**Phase:** 4
-
-**Depends on:** REQ-PROJ-002
-
-*Permanent data removal with cascading cleanup*
-
-### Acceptance Criteria
-
-1. DELETE /orgs/:slug/projects/:id permanently deletes the project.
-2. All resources belonging to the deleted project are permanently removed.
-3. Only owners and admins can delete projects; members and viewers receive 403 Forbidden.
-4. A successful deletion returns 204 No Content.
-5. Deleting a non-existent project returns 404 Not Found.
-6. Deleting a project in another organization returns 404 Not Found (tenant isolation).
-7. An audit log entry is created for the deletion before the project is removed.
-8. Webhook events (project.deleted) are fired before the project data is removed.
-9. The deletion cascades atomically; if any part fails, the entire operation rolls back.
-10. Archived projects can also be deleted.
-
-### API
-
-### DELETE /orgs/:slug/projects/:id
-
-**Response (204 No Content)**
-
-**Error (403 Forbidden):**
-```json
-{
-  "error": "insufficient permissions: member cannot delete projects"
-}
-```
-
-**Error (404 Not Found):**
-```json
-{
-  "error": "project not found"
-}
-```
-
----
-
-## 29. REQ-RES-002: Resource filtering and listing
+## 27. REQ-RES-002: Resource filtering and listing
 
 **Phase:** 5
 
@@ -1610,47 +1910,24 @@ Not applicable. Notifications are accessed via the endpoints defined in REQ-NOTI
 }
 ```
 
----
+### GET /orgs/:slug/projects/:id/resources (empty result)
 
-## 30. REQ-APIKEY-003: API key scope enforcement
-
-**Phase:** 6
-
-**Depends on:** REQ-APIKEY-002
-
-*Fine-grained access control for integrations*
-
-### Acceptance Criteria
-
-1. API keys with "read" scope can perform GET requests on org-scoped endpoints.
-2. API keys with "write" scope can perform GET, POST, PUT, and DELETE requests on resource and project endpoints.
-3. API keys with "admin" scope can perform all operations including member management, API key management, and webhook management.
-4. A "read" scope key attempting a POST returns 403 Forbidden.
-5. A "write" scope key attempting to manage members or API keys returns 403 Forbidden.
-6. Scope enforcement is checked after API key authentication succeeds.
-7. The error response includes which scope is required for the attempted operation.
-8. An API key with multiple scopes has the union of all permissions from those scopes.
-9. An API key with no scopes can only authenticate but cannot access any endpoints (returns 403 for all operations).
-10. Scope enforcement does not apply to JWT-authenticated requests (JWT uses RBAC roles instead).
-
-### API
-
-**Example: Read-only key attempting a write:**
-```
-POST /orgs/acme-corp/projects
-X-API-Key: rtmx_readonly_key_value
-```
-
-**Response (403 Forbidden):**
+**Response (200 OK):**
 ```json
 {
-  "error": "API key scope 'write' required for this operation"
+  "data": [],
+  "pagination": {
+    "total": 0,
+    "page": 1,
+    "per_page": 20,
+    "total_pages": 0
+  }
 }
 ```
 
 ---
 
-## 31. REQ-ADMIN-002: Platform admin cross-org audit log access
+## 28. REQ-ADMIN-002: Platform admin cross-org audit log access
 
 **Phase:** 6
 
@@ -1704,9 +1981,144 @@ Authorization: Bearer <admin_token>
 }
 ```
 
+**Error (403 Forbidden):**
+```json
+{
+  "error": "platform admin access required"
+}
+```
+
 ---
 
-## 32. REQ-SEARCH-001: Full-text search across projects and resources
+## 29. REQ-APIKEY-003: API key scope enforcement
+
+**Phase:** 6
+
+**Depends on:** REQ-APIKEY-002
+
+*Fine-grained access control for integrations*
+
+### Acceptance Criteria
+
+1. API keys with "read" scope can perform GET requests on org-scoped endpoints.
+2. API keys with "write" scope can perform GET, POST, PUT, and DELETE requests on resource and project endpoints.
+3. API keys with "admin" scope can perform all operations including member management, API key management, and webhook management.
+4. A "read" scope key attempting a POST returns 403 Forbidden.
+5. A "write" scope key attempting to manage members or API keys returns 403 Forbidden.
+6. Scope enforcement is checked after API key authentication succeeds.
+7. The error response includes which scope is required for the attempted operation.
+8. An API key with multiple scopes has the union of all permissions from those scopes.
+9. An API key with no scopes can only authenticate but cannot access any endpoints (returns 403 for all operations).
+10. Scope enforcement does not apply to JWT-authenticated requests (JWT uses RBAC roles instead).
+
+### API
+
+Scope enforcement is a cross-cutting middleware, not a standalone endpoint.
+
+### Example: Read-Only Key Attempting a Write
+
+**Request:**
+```
+POST /orgs/acme-corp/projects
+X-API-Key: rtmx_readonly_key_value
+```
+```json
+{
+  "name": "New Project"
+}
+```
+
+**Response (403 Forbidden):**
+```json
+{
+  "error": "API key scope 'write' required for this operation"
+}
+```
+
+### Example: Write Key Attempting Admin Operation
+
+**Request:**
+```
+POST /orgs/acme-corp/api-keys
+X-API-Key: rtmx_write_key_value
+```
+```json
+{
+  "name": "Another Key",
+  "scopes": ["read"]
+}
+```
+
+**Response (403 Forbidden):**
+```json
+{
+  "error": "API key scope 'admin' required for this operation"
+}
+```
+
+---
+
+## 30. REQ-QUOTA-002: Quota warning notifications
+
+**Phase:** 6
+
+**Depends on:** REQ-QUOTA-001, REQ-APIKEY-003, REQ-NOTIF-002
+
+*Proactive warning before hitting hard limits*
+
+### Acceptance Criteria
+
+1. When an organization reaches 80% of its plan limit for members, a quota warning notification is created.
+2. When an organization reaches 80% of its plan limit for projects, a quota warning notification is created.
+3. When an organization reaches 80% of its plan limit for resources, a quota warning notification is created.
+4. When an organization reaches 80% of its plan limit for API keys, a quota warning notification is created.
+5. Quota warning notifications are sent to all owners and admins of the affected organization.
+6. Each quota warning notification includes the metric name, current usage, and plan limit in the body.
+7. Only one warning notification is sent per metric per billing period, even if usage fluctuates around the threshold.
+8. Organizations on the enterprise plan (unlimited limits) never receive quota warnings.
+9. GET /orgs/:slug/billing/plan includes a warnings array listing any metrics currently at or above 80%.
+10. Quota warnings are checked on every create operation that increments a counted resource.
+
+### API
+
+### GET /orgs/:slug/billing/plan
+
+**Response (200 OK):**
+```json
+{
+  "plan": "starter",
+  "limits": {
+    "max_members": 10,
+    "max_projects": 10,
+    "max_resources": 500,
+    "max_api_keys": 5
+  },
+  "usage": {
+    "members": 8,
+    "projects": 9,
+    "resources": 120,
+    "api_keys": 2
+  },
+  "warnings": [
+    {
+      "metric": "members",
+      "current": 8,
+      "limit": 10,
+      "percent": 80
+    },
+    {
+      "metric": "projects",
+      "current": 9,
+      "limit": 10,
+      "percent": 90
+    }
+  ]
+}
+```
+
+---
+
+## 31. REQ-SEARCH-001: Full-text search across projects and resources
 
 **Phase:** 6
 
@@ -1757,105 +2169,168 @@ Authorization: Bearer <token>
         "name": "Monthly Report Template",
         "type": "document",
         "project_id": 3
+      },
+      {
+        "id": 45,
+        "name": "Annual Report Data",
+        "type": "dataset",
+        "project_id": 5
       }
     ]
   },
-  "total": 2,
+  "total": 3,
   "page": 1,
   "per_page": 20
 }
 ```
 
----
-
-## 33. REQ-QUOTA-002: Quota warning notifications
-
-**Phase:** 6
-
-**Depends on:** REQ-QUOTA-001, REQ-APIKEY-003, REQ-NOTIF-002
-
-*Proactive warning before hitting hard limits*
-
-### Acceptance Criteria
-
-1. When an organization reaches 80% of its plan limit for members, a quota warning notification is created.
-2. When an organization reaches 80% of its plan limit for projects, a quota warning notification is created.
-3. When an organization reaches 80% of its plan limit for resources, a quota warning notification is created.
-4. When an organization reaches 80% of its plan limit for API keys, a quota warning notification is created.
-5. Quota warning notifications are sent to all owners and admins of the affected organization.
-6. Each quota warning notification includes the metric name, current usage, and plan limit in the body.
-7. Only one warning notification is sent per metric per billing period, even if usage fluctuates around the threshold.
-8. Organizations on the enterprise plan (unlimited limits) never receive quota warnings.
-9. GET /orgs/:slug/billing/plan includes a warnings array listing any metrics currently at or above 80%.
-10. Quota warnings are checked on every create operation that increments a counted resource.
-
-### API
-
-### GET /orgs/:slug/billing/plan (with warnings)
-
-**Response (200 OK):**
+**Error (400 Bad Request):**
 ```json
 {
-  "plan": "starter",
-  "limits": {
-    "max_members": 10,
-    "max_projects": 10,
-    "max_resources": 500,
-    "max_api_keys": 5
-  },
-  "usage": {
-    "members": 8,
-    "projects": 9,
-    "resources": 120,
-    "api_keys": 2
-  },
-  "warnings": [
-    {
-      "metric": "members",
-      "current": 8,
-      "limit": 10,
-      "percent": 80
-    },
-    {
-      "metric": "projects",
-      "current": 9,
-      "limit": 10,
-      "percent": 90
-    }
-  ]
+  "error": "search query parameter 'q' is required"
 }
 ```
 
 ---
 
-## 34. REQ-WEBHOOK-003: Webhook delivery retry with exponential backoff
+## 32. REQ-WEBHOOK-001: Webhook registration and management
 
-**Phase:** 7
+**Phase:** 6
 
-**Depends on:** REQ-WEBHOOK-002, REQ-PROJ-003
+**Depends on:** REQ-RBAC-002
 
-*Resilient delivery despite endpoint failures*
+*Event-driven integration with external systems*
 
 ### Acceptance Criteria
 
-1. A failed webhook delivery (non-2xx status code or timeout) is retried up to 3 additional times.
-2. Retry delays follow exponential backoff: 10 seconds, 60 seconds, 300 seconds (5 minutes).
-3. Each retry attempt is recorded as a separate entry in the webhook_deliveries table with an incremented retry_count.
-4. The retry payload and signature are identical to the original delivery attempt.
-5. If a retry succeeds (2xx response), no further retries are attempted.
-6. After all 3 retries fail, the delivery is marked as permanently failed with no further attempts.
-7. Retries are processed asynchronously and do not block any API request.
-8. The webhook delivery history shows all attempts (original plus retries) for a given event.
-9. When a project is deleted and cascading webhooks fire, the retry mechanism handles those deliveries consistently.
-10. If a webhook is deactivated or deleted between retries, remaining retries for that webhook are cancelled.
+1. POST /orgs/:slug/webhooks creates a new webhook with url, events, secret, and is_active fields.
+2. POST /orgs/:slug/webhooks auto-generates a cryptographically random secret if none is provided.
+3. POST /orgs/:slug/webhooks returns 403 if the authenticated user is not an owner or admin.
+4. POST /orgs/:slug/webhooks validates that the events array contains only recognized event types.
+5. GET /orgs/:slug/webhooks returns a list of all webhooks for the organization.
+6. GET /orgs/:slug/webhooks does not expose the webhook secret in list responses.
+7. PUT /orgs/:slug/webhooks/:id updates the webhook url, events, or is_active status.
+8. PUT /orgs/:slug/webhooks/:id allows regenerating the secret by passing a new value.
+9. DELETE /orgs/:slug/webhooks/:id deletes the webhook and all associated delivery records.
+10. Recognized event types are: member.joined, member.removed, project.created, project.archived, project.deleted, resource.created, resource.updated, resource.deleted.
+11. All webhook CRUD operations are scoped to the current organization via tenant isolation.
 
 ### API
 
-Not applicable. Delivery status is visible via the webhook delivery history endpoint defined in REQ-WEBHOOK-004.
+### POST /orgs/:slug/webhooks
+
+**Request:**
+```json
+{
+  "url": "https://example.com/webhook",
+  "events": ["project.created", "resource.created", "resource.updated"],
+  "is_active": true
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "id": 1,
+  "org_id": 1,
+  "url": "https://example.com/webhook",
+  "events": ["project.created", "resource.created", "resource.updated"],
+  "secret": "whsec_a1b2c3d4e5f6g7h8",
+  "is_active": true,
+  "created_at": "2026-01-15T10:30:00Z"
+}
+```
+
+### GET /orgs/:slug/webhooks
+
+**Response (200 OK):**
+```json
+{
+  "webhooks": [
+    {
+      "id": 1,
+      "org_id": 1,
+      "url": "https://example.com/webhook",
+      "events": ["project.created", "resource.created", "resource.updated"],
+      "is_active": true,
+      "created_at": "2026-01-15T10:30:00Z"
+    }
+  ]
+}
+```
+
+### DELETE /orgs/:slug/webhooks/:id
+
+**Response (204 No Content)**
+
+**Error (403 Forbidden):**
+```json
+{
+  "error": "admin access required"
+}
+```
 
 ---
 
-## 35. REQ-BILLING-003: Invoice generation and listing
+## 33. REQ-WEBHOOK-002: Webhook event delivery with signing
+
+**Phase:** 6
+
+**Depends on:** REQ-WEBHOOK-001
+
+*Secure event delivery to registered endpoints*
+
+### Acceptance Criteria
+
+1. When a subscribed event occurs, the system sends an HTTP POST to each active webhook registered for that event type.
+2. The request body contains a JSON payload with event_type, timestamp, org_id, and event-specific data.
+3. The payload is signed with HMAC-SHA256 using the webhook's secret key.
+4. The signature is included in the X-Webhook-Signature header as sha256=<hex_digest>.
+5. The delivery request includes a Content-Type: application/json header.
+6. The delivery request includes an X-Webhook-Event header with the event type.
+7. A delivery is considered successful if the endpoint returns a 2xx status code.
+8. Each delivery attempt is recorded in the webhook_deliveries table with webhook_id, event_type, payload, status_code, response_body, and delivered_at.
+9. Inactive webhooks (is_active=false) do not receive deliveries.
+10. Webhook deliveries do not block the API response that triggered the event.
+11. If the endpoint does not respond within 10 seconds, the delivery is marked as timed out with status_code 0.
+
+### API
+
+### Webhook delivery payload format
+
+**HTTP POST to webhook URL:**
+```
+POST https://example.com/webhook
+Content-Type: application/json
+X-Webhook-Event: project.created
+X-Webhook-Signature: sha256=5d41402abc4b2a76b9719d911017c592
+```
+
+```json
+{
+  "event_type": "project.created",
+  "timestamp": "2026-01-15T10:30:00Z",
+  "org_id": 1,
+  "data": {
+    "id": 5,
+    "name": "New Project",
+    "description": "A newly created project",
+    "created_at": "2026-01-15T10:30:00Z"
+  }
+}
+```
+
+### Signature verification (recipient side)
+
+```
+expected = HMAC-SHA256(webhook_secret, raw_request_body)
+actual = X-Webhook-Signature header value (after "sha256=" prefix)
+verify: constant_time_compare(expected, actual)
+```
+
+---
+
+## 34. REQ-BILLING-003: Invoice generation and listing
 
 **Phase:** 7
 
@@ -1880,6 +2355,12 @@ Not applicable. Delivery status is visible via the webhook delivery history endp
 
 ### GET /orgs/:slug/billing/invoices
 
+**Request:**
+```
+GET /orgs/acme/billing/invoices?page=1&per_page=20
+Authorization: Bearer <token>
+```
+
 **Response (200 OK):**
 ```json
 {
@@ -1893,11 +2374,21 @@ Not applicable. Delivery status is visible via the webhook delivery history endp
       "status": "paid",
       "issued_at": "2026-02-01T00:00:00Z",
       "paid_at": "2026-02-05T12:00:00Z"
+    },
+    {
+      "id": 2,
+      "org_id": 1,
+      "period_start": "2025-12-01T00:00:00Z",
+      "period_end": "2025-12-31T23:59:59Z",
+      "amount_cents": 2900,
+      "status": "paid",
+      "issued_at": "2026-01-01T00:00:00Z",
+      "paid_at": "2026-01-03T09:00:00Z"
     }
   ],
   "page": 1,
   "per_page": 20,
-  "total": 1
+  "total": 2
 }
 ```
 
@@ -1917,60 +2408,16 @@ Not applicable. Delivery status is visible via the webhook delivery history endp
 }
 ```
 
----
-
-## 36. REQ-WEBHOOK-004: Webhook delivery history and status
-
-**Phase:** 7
-
-**Depends on:** REQ-WEBHOOK-003
-
-*Debugging and monitoring webhook integrations*
-
-### Acceptance Criteria
-
-1. GET /orgs/:slug/webhooks/:id/deliveries returns a paginated list of delivery attempts for the specified webhook.
-2. Deliveries are listed in reverse chronological order (newest first).
-3. Each delivery record includes id, webhook_id, event_type, payload, status_code, response_body, delivered_at, and retry_count.
-4. GET /orgs/:slug/webhooks/:id/deliveries supports page and per_page query parameters.
-5. GET /orgs/:slug/webhooks/:id/deliveries returns 404 if the webhook does not exist or belongs to another organization.
-6. GET /orgs/:slug/webhooks/:id/deliveries returns 403 if the authenticated user is not an owner or admin.
-7. Successful deliveries (2xx status codes) and failed deliveries are both included in the history.
-8. The response body field is truncated to 1024 characters to prevent excessive storage.
-
-### API
-
-### GET /orgs/:slug/webhooks/:id/deliveries
-
-**Response (200 OK):**
+**Error (404 Not Found):**
 ```json
 {
-  "deliveries": [
-    {
-      "id": 15,
-      "webhook_id": 1,
-      "event_type": "resource.created",
-      "payload": {
-        "event_type": "resource.created",
-        "timestamp": "2026-01-15T10:30:00Z",
-        "org_id": 1,
-        "data": {"id": 10, "name": "Report Q4"}
-      },
-      "status_code": 200,
-      "response_body": "OK",
-      "delivered_at": "2026-01-15T10:30:01Z",
-      "retry_count": 0
-    }
-  ],
-  "page": 1,
-  "per_page": 20,
-  "total": 1
+  "error": "invoice not found"
 }
 ```
 
 ---
 
-## 37. REQ-BILLING-004: Usage tracking and reporting
+## 35. REQ-BILLING-004: Usage tracking and reporting
 
 **Phase:** 7
 
@@ -1995,6 +2442,12 @@ Not applicable. Delivery status is visible via the webhook delivery history endp
 
 ### GET /orgs/:slug/billing/usage
 
+**Request:**
+```
+GET /orgs/acme/billing/usage
+Authorization: Bearer <token>
+```
+
 **Response (200 OK):**
 ```json
 {
@@ -2006,6 +2459,134 @@ Not applicable. Delivery status is visible via the webhook delivery history endp
     "storage_bytes": 5242880,
     "resources_created": 87
   }
+}
+```
+
+**Error (403 Forbidden):**
+```json
+{
+  "error": "owner access required"
+}
+```
+
+---
+
+## 36. REQ-WEBHOOK-003: Webhook delivery retry with exponential backoff
+
+**Phase:** 7
+
+**Depends on:** REQ-WEBHOOK-002, REQ-PROJ-003
+
+*Resilient delivery despite endpoint failures*
+
+### Acceptance Criteria
+
+1. A failed webhook delivery (non-2xx status code or timeout) is retried up to 3 additional times.
+2. Retry delays follow exponential backoff: 10 seconds, 60 seconds, 300 seconds (5 minutes).
+3. Each retry attempt is recorded as a separate entry in the webhook_deliveries table with an incremented retry_count.
+4. The retry payload and signature are identical to the original delivery attempt.
+5. If a retry succeeds (2xx response), no further retries are attempted.
+6. After all 3 retries fail, the delivery is marked as permanently failed with no further attempts.
+7. Retries are processed asynchronously and do not block any API request.
+8. The webhook delivery history shows all attempts (original plus retries) for a given event.
+9. When a project is deleted and cascading webhooks fire, the retry mechanism handles those deliveries consistently.
+10. If a webhook is deactivated or deleted between retries, remaining retries for that webhook are cancelled.
+
+### API
+
+Not applicable. This requirement covers internal retry behavior for webhook deliveries. Delivery status is visible via the webhook delivery history endpoint defined in REQ-WEBHOOK-004.
+
+### Delivery record with retry information
+
+```json
+{
+  "id": 15,
+  "webhook_id": 1,
+  "event_type": "resource.created",
+  "payload": {"event_type": "resource.created", "data": {"id": 10}},
+  "status_code": 500,
+  "response_body": "Internal Server Error",
+  "delivered_at": "2026-01-15T10:30:10Z",
+  "retry_count": 1
+}
+```
+
+---
+
+## 37. REQ-WEBHOOK-004: Webhook delivery history and status
+
+**Phase:** 7
+
+**Depends on:** REQ-WEBHOOK-003
+
+*Debugging and monitoring webhook integrations*
+
+### Acceptance Criteria
+
+1. GET /orgs/:slug/webhooks/:id/deliveries returns a paginated list of delivery attempts for the specified webhook.
+2. Deliveries are listed in reverse chronological order (newest first).
+3. Each delivery record includes id, webhook_id, event_type, payload, status_code, response_body, delivered_at, and retry_count.
+4. GET /orgs/:slug/webhooks/:id/deliveries supports page and per_page query parameters.
+5. GET /orgs/:slug/webhooks/:id/deliveries returns 404 if the webhook does not exist or belongs to another organization.
+6. GET /orgs/:slug/webhooks/:id/deliveries returns 403 if the authenticated user is not an owner or admin.
+7. Successful deliveries (2xx status codes) and failed deliveries are both included in the history.
+8. The response body field is truncated to 1024 characters to prevent excessive storage.
+
+### API
+
+### GET /orgs/:slug/webhooks/:id/deliveries
+
+**Request:**
+```
+GET /orgs/acme/webhooks/1/deliveries?page=1&per_page=20
+Authorization: Bearer <token>
+```
+
+**Response (200 OK):**
+```json
+{
+  "deliveries": [
+    {
+      "id": 15,
+      "webhook_id": 1,
+      "event_type": "resource.created",
+      "payload": {
+        "event_type": "resource.created",
+        "timestamp": "2026-01-15T10:30:00Z",
+        "org_id": 1,
+        "data": {"id": 10, "name": "Report Q4"}
+      },
+      "status_code": 200,
+      "response_body": "OK",
+      "delivered_at": "2026-01-15T10:30:01Z",
+      "retry_count": 0
+    },
+    {
+      "id": 14,
+      "webhook_id": 1,
+      "event_type": "project.created",
+      "payload": {
+        "event_type": "project.created",
+        "timestamp": "2026-01-14T09:00:00Z",
+        "org_id": 1,
+        "data": {"id": 5, "name": "New Project"}
+      },
+      "status_code": 500,
+      "response_body": "Internal Server Error",
+      "delivered_at": "2026-01-14T09:00:01Z",
+      "retry_count": 2
+    }
+  ],
+  "page": 1,
+  "per_page": 20,
+  "total": 2
+}
+```
+
+**Error (404 Not Found):**
+```json
+{
+  "error": "webhook not found"
 }
 ```
 
@@ -2034,6 +2615,12 @@ Not applicable. Delivery status is visible via the webhook delivery history endp
 ### API
 
 ### GET /orgs/:slug/analytics
+
+**Request:**
+```
+GET /orgs/acme/analytics
+Authorization: Bearer <token>
+```
 
 **Response (200 OK):**
 ```json
@@ -2064,6 +2651,13 @@ Not applicable. Delivery status is visible via the webhook delivery history endp
 }
 ```
 
+**Error (403 Forbidden):**
+```json
+{
+  "error": "owner access required"
+}
+```
+
 ---
 
 ## 39. REQ-ANALYTICS-002: Platform-wide analytics dashboard
@@ -2089,6 +2683,12 @@ Not applicable. Delivery status is visible via the webhook delivery history endp
 
 ### GET /admin/analytics
 
+**Request:**
+```
+GET /admin/analytics
+Authorization: Bearer <admin_token>
+```
+
 **Response (200 OK):**
 ```json
 {
@@ -2112,6 +2712,13 @@ Not applicable. Delivery status is visible via the webhook delivery history endp
     "new_users_this_period": 85
   },
   "active_orgs": 120
+}
+```
+
+**Error (403 Forbidden):**
+```json
+{
+  "error": "platform admin access required"
 }
 ```
 
@@ -2159,6 +2766,13 @@ org_id,org_name,plan,metric,value,period
 1,Acme Corp,business,resources_created,87,2026-01
 2,Startup Co,starter,api_calls,3200,2026-01
 2,Startup Co,starter,resources_created,24,2026-01
+```
+
+**Error (403 Forbidden):**
+```json
+{
+  "error": "platform admin access required"
+}
 ```
 
 ---

@@ -66,14 +66,16 @@ circuit_breaker:
   recovery_timeout_seconds: 30
 ```
 
-### GET /admin/config
+### Export Running Configuration
 
-**Request Headers:**
+**GET /admin/config**
+
+Request Headers:
 ```
 X-API-Key: admin-key-value
 ```
 
-**Response (200 OK):**
+Response (200 OK):
 ```json
 {
   "gateway": {
@@ -98,7 +100,7 @@ X-API-Key: admin-key-value
 
 **Phase:** 1
 
-*Foundation: services, routes, keys, and audit log tables*
+*Foundation: services routes keys and audit log tables*
 
 ### Acceptance Criteria
 
@@ -113,87 +115,9 @@ X-API-Key: admin-key-value
 9. Inserting a route with a non-existent service_id is rejected by the foreign key constraint.
 10. The middleware_config column in routes stores valid JSON as TEXT.
 
-### API
-
-Not applicable. This is an internal infrastructure requirement.
-
 ---
 
-## 3. REQ-VALID-001: Input validation on all admin endpoints
-
-**Phase:** 2
-
-**Depends on:** REQ-DB-001
-
-*Prevents invalid configuration*
-
-### Acceptance Criteria
-
-1. POST /admin/services returns 422 when the `name` field is missing or empty.
-2. POST /admin/services returns 422 when the `base_url` field is not a valid URL.
-3. POST /admin/services returns 422 when the `name` is already taken by an existing service.
-4. POST /admin/routes returns 422 when the `path_pattern` field is missing or empty.
-5. POST /admin/routes returns 422 when the `service_id` references a non-existent service.
-6. POST /admin/routes returns 422 when the `method` is not a valid HTTP method or "*".
-7. POST /admin/routes returns 422 when `timeout_ms` is negative or zero.
-8. POST /admin/keys returns 422 when the `name` field is missing or empty.
-9. POST /admin/keys returns 422 when the `role` is not "admin" or "service".
-10. All 422 responses include a JSON body with `error` and `message` fields describing the validation failure.
-11. Multiple validation errors on a single request are returned together in a `details` array.
-12. Valid requests that pass all validation checks are processed normally and return the expected success response.
-
-### API
-
-### POST /admin/services (validation error)
-
-**Request:**
-```json
-{
-  "name": "",
-  "base_url": "not-a-url"
-}
-```
-
-**Response (422 Unprocessable Entity):**
-```json
-{
-  "error": "validation_failed",
-  "message": "Input validation failed",
-  "details": [
-    {"field": "name", "message": "name is required and must not be empty"},
-    {"field": "base_url", "message": "base_url must be a valid HTTP or HTTPS URL"}
-  ]
-}
-```
-
-### POST /admin/routes (validation error)
-
-**Request:**
-```json
-{
-  "path_pattern": "/api/users/*",
-  "service_id": 999,
-  "method": "INVALID",
-  "timeout_ms": -1
-}
-```
-
-**Response (422 Unprocessable Entity):**
-```json
-{
-  "error": "validation_failed",
-  "message": "Input validation failed",
-  "details": [
-    {"field": "service_id", "message": "service with id 999 does not exist"},
-    {"field": "method", "message": "method must be a valid HTTP method (GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS) or '*'"},
-    {"field": "timeout_ms", "message": "timeout_ms must be a positive integer"}
-  ]
-}
-```
-
----
-
-## 4. REQ-REG-001: Service registry for backend service management
+## 3. REQ-REG-001: Service registry for backend service management
 
 **Phase:** 1
 
@@ -219,7 +143,7 @@ Not applicable. This is an internal infrastructure requirement.
 
 ### POST /admin/services
 
-**Request:**
+Request:
 ```json
 {
   "name": "users-service",
@@ -228,7 +152,7 @@ Not applicable. This is an internal infrastructure requirement.
 }
 ```
 
-**Response (201 Created):**
+Response (201):
 ```json
 {
   "id": 1,
@@ -243,7 +167,7 @@ Not applicable. This is an internal infrastructure requirement.
 
 ### GET /admin/services
 
-**Response (200 OK):**
+Response (200):
 ```json
 [
   {
@@ -260,7 +184,85 @@ Not applicable. This is an internal infrastructure requirement.
 
 ### DELETE /admin/services/:id
 
-**Response (204 No Content)**
+Response (204): No content.
+
+---
+
+## 4. REQ-VALID-001: Input validation on all admin endpoints
+
+**Phase:** 2
+
+**Depends on:** REQ-DB-001
+
+*Prevents invalid configuration*
+
+### Acceptance Criteria
+
+1. POST /admin/services returns 422 when the `name` field is missing or empty.
+2. POST /admin/services returns 422 when the `base_url` field is not a valid URL.
+3. POST /admin/services returns 422 when the `name` is already taken by an existing service.
+4. POST /admin/routes returns 422 when the `path_pattern` field is missing or empty.
+5. POST /admin/routes returns 422 when the `service_id` references a non-existent service.
+6. POST /admin/routes returns 422 when the `method` is not a valid HTTP method or "*".
+7. POST /admin/routes returns 422 when `timeout_ms` is negative or zero.
+8. POST /admin/keys returns 422 when the `name` field is missing or empty.
+9. POST /admin/keys returns 422 when the `role` is not "admin" or "service".
+10. All 422 responses include a JSON body with `error` and `message` fields describing the validation failure.
+11. Multiple validation errors on a single request are returned together in a `details` array.
+12. Valid requests that pass all validation checks are processed normally and return the expected success response.
+
+### API
+
+### Validation Error Response
+
+**POST /admin/services**
+
+Request:
+```json
+{
+  "name": "",
+  "base_url": "not-a-url"
+}
+```
+
+Response (422 Unprocessable Entity):
+```json
+{
+  "error": "validation_failed",
+  "message": "Input validation failed",
+  "details": [
+    {"field": "name", "message": "name is required and must not be empty"},
+    {"field": "base_url", "message": "base_url must be a valid HTTP or HTTPS URL"}
+  ]
+}
+```
+
+### Route Validation Error
+
+**POST /admin/routes**
+
+Request:
+```json
+{
+  "path_pattern": "/api/users/*",
+  "service_id": 999,
+  "method": "INVALID",
+  "timeout_ms": -1
+}
+```
+
+Response (422 Unprocessable Entity):
+```json
+{
+  "error": "validation_failed",
+  "message": "Input validation failed",
+  "details": [
+    {"field": "service_id", "message": "service with id 999 does not exist"},
+    {"field": "method", "message": "method must be a valid HTTP method (GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS) or '*'"},
+    {"field": "timeout_ms", "message": "timeout_ms must be a positive integer"}
+  ]
+}
+```
 
 ---
 
@@ -287,9 +289,11 @@ Not applicable. This is an internal infrastructure requirement.
 
 ### API
 
-### GET /health
+### Gateway Health
 
-**Response (200 OK):**
+**GET /health**
+
+Response (200 OK):
 ```json
 {
   "status": "healthy",
@@ -298,9 +302,11 @@ Not applicable. This is an internal infrastructure requirement.
 }
 ```
 
-### GET /health/services
+### Service Health Summary
 
-**Response (200 OK):**
+**GET /health/services**
+
+Response (200 OK):
 ```json
 [
   {
@@ -343,7 +349,7 @@ Not applicable. This is an internal infrastructure requirement.
 
 ### POST /admin/routes
 
-**Request:**
+Request:
 ```json
 {
   "path_pattern": "/api/users/*",
@@ -362,7 +368,7 @@ Not applicable. This is an internal infrastructure requirement.
 }
 ```
 
-**Response (201 Created):**
+Response (201):
 ```json
 {
   "id": 1,
@@ -385,7 +391,7 @@ Not applicable. This is an internal infrastructure requirement.
 
 ### GET /admin/routes
 
-**Response (200 OK):**
+Response (200):
 ```json
 [
   {
@@ -407,57 +413,7 @@ Not applicable. This is an internal infrastructure requirement.
 
 ---
 
-## 7. REQ-ROUTE-002: Path pattern matching and method filtering
-
-**Phase:** 2
-
-**Depends on:** REQ-ROUTE-001
-
-*Request routing logic for the proxy*
-
-### Acceptance Criteria
-
-1. A route with path_pattern `/api/users/*` matches requests to `/api/users/123` and `/api/users/123/profile`.
-2. A route with path_pattern `/api/users` (no wildcard) matches only the exact path `/api/users`.
-3. When multiple routes match, the most specific pattern wins (e.g., `/api/users/admin` beats `/api/users/*`).
-4. A route with method `*` matches all HTTP methods (GET, POST, PUT, DELETE, PATCH).
-5. A route with method `GET` matches only GET requests; POST to the same path returns 404 if no other route matches.
-6. A request to a path with no matching route returns 404 with a JSON error body.
-7. Route matching is case-sensitive for path segments.
-8. The matched route is passed to the middleware chain for processing.
-9. A route with path_pattern `/api/v1/*` does not match `/api/v2/users`.
-10. Trailing slashes are normalized so `/api/users/` and `/api/users` match the same route.
-
-### API
-
-### Proxy request (matched route)
-
-**Request:**
-```
-GET /api/users/123 HTTP/1.1
-X-API-Key: sk_test_abc123
-```
-
-Response: Proxied from the backend service associated with the matching route.
-
-### Proxy request (no matching route)
-
-**Request:**
-```
-GET /unknown/path HTTP/1.1
-X-API-Key: sk_test_abc123
-```
-
-**Response (404 Not Found):**
-```json
-{
-  "error": "no route matches path /unknown/path"
-}
-```
-
----
-
-## 8. REQ-AUTH-001: API key management with role-based access
+## 7. REQ-AUTH-001: API key management with role-based access
 
 **Phase:** 2
 
@@ -482,7 +438,7 @@ X-API-Key: sk_test_abc123
 
 ### POST /admin/keys
 
-**Request:**
+Request:
 ```json
 {
   "name": "ci-pipeline",
@@ -491,7 +447,7 @@ X-API-Key: sk_test_abc123
 }
 ```
 
-**Response (201 Created):**
+Response (201):
 ```json
 {
   "id": 1,
@@ -506,7 +462,7 @@ X-API-Key: sk_test_abc123
 
 ### GET /admin/keys
 
-**Response (200 OK):**
+Response (200):
 ```json
 [
   {
@@ -522,76 +478,11 @@ X-API-Key: sk_test_abc123
 
 ### DELETE /admin/keys/:id
 
-**Response (204 No Content)**
+Response (204): No content.
 
 ---
 
-## 9. REQ-CORS-001: CORS preflight handling
-
-**Phase:** 4
-
-**Depends on:** REQ-ROUTE-001
-
-*Cross-origin browser access support*
-
-### Acceptance Criteria
-
-1. An OPTIONS request to a route with CORS middleware configured returns a 204 No Content response without proxying to the backend.
-2. The preflight response includes the Access-Control-Allow-Origin header matching the request Origin if it is in the allowed_origins list.
-3. The preflight response includes Access-Control-Allow-Methods listing the methods from the route CORS allowed_methods configuration.
-4. The preflight response includes Access-Control-Allow-Headers listing the headers from the route CORS allowed_headers configuration.
-5. The preflight response includes Access-Control-Max-Age set to the route CORS max_age value in seconds.
-6. When allowed_origins is ["*"], the Access-Control-Allow-Origin header is set to "*".
-7. When the request Origin is not in the allowed_origins list, the preflight response omits the Access-Control-Allow-Origin header and returns 204 with no CORS headers.
-8. An OPTIONS request to a route without CORS middleware configured returns 404 or passes through the normal routing logic.
-9. Preflight responses are not recorded in the audit log as proxied requests.
-10. The gateway does not require API key authentication for OPTIONS preflight requests on CORS-enabled routes.
-
-### API
-
-### Route with CORS middleware configuration
-
-**POST /admin/routes**
-
-**Request:**
-```json
-{
-  "path_pattern": "/api/users/*",
-  "method": "*",
-  "service_id": 1,
-  "strip_prefix": true,
-  "timeout_ms": 5000,
-  "middleware_config": {
-    "cors": {
-      "allowed_origins": ["https://example.com", "https://app.example.com"],
-      "allowed_methods": ["GET", "POST", "PUT", "DELETE"],
-      "allowed_headers": ["Content-Type", "Authorization", "X-API-Key"],
-      "max_age": 3600
-    }
-  }
-}
-```
-
-### OPTIONS /api/users/123
-
-**Request Headers:**
-```
-Origin: https://example.com
-Access-Control-Request-Method: POST
-Access-Control-Request-Headers: Content-Type, X-API-Key
-```
-
-**Response (204 No Content):**
-```
-Access-Control-Allow-Origin: https://example.com
-Access-Control-Allow-Methods: GET, POST, PUT, DELETE
-Access-Control-Allow-Headers: Content-Type, Authorization, X-API-Key
-Access-Control-Max-Age: 3600
-```
-
----
-
-## 10. REQ-AUTH-002: API key authentication middleware
+## 8. REQ-AUTH-002: API key authentication middleware
 
 **Phase:** 2
 
@@ -616,12 +507,12 @@ Access-Control-Max-Age: 3600
 
 ### Unauthenticated request
 
-**Request:**
+Request:
 ```
 GET /api/users/123 HTTP/1.1
 ```
 
-**Response (401 Unauthorized):**
+Response (401):
 ```json
 {
   "error": "missing or invalid API key"
@@ -630,13 +521,13 @@ GET /api/users/123 HTTP/1.1
 
 ### Revoked key
 
-**Request:**
+Request:
 ```
 GET /api/users/123 HTTP/1.1
 X-API-Key: sk_revoked_key
 ```
 
-**Response (403 Forbidden):**
+Response (403):
 ```json
 {
   "error": "API key has been revoked"
@@ -645,13 +536,13 @@ X-API-Key: sk_revoked_key
 
 ### Insufficient role
 
-**Request:**
+Request:
 ```
 GET /admin/services HTTP/1.1
 X-API-Key: sk_service_key
 ```
 
-**Response (403 Forbidden):**
+Response (403):
 ```json
 {
   "error": "insufficient permissions: admin role required"
@@ -660,152 +551,57 @@ X-API-Key: sk_service_key
 
 ---
 
-## 11. REQ-CORS-002: CORS response headers on all requests
+## 9. REQ-ROUTE-002: Path pattern matching and method filtering
 
-**Phase:** 4
+**Phase:** 2
 
-**Depends on:** REQ-CORS-001
+**Depends on:** REQ-ROUTE-001
 
-*Browser enforces CORS on non-preflight requests too*
-
-### Acceptance Criteria
-
-1. Non-OPTIONS requests to CORS-enabled routes include Access-Control-Allow-Origin in the response, matching the request Origin against the allowed_origins list.
-2. When allowed_origins is ["*"], Access-Control-Allow-Origin is set to "*" on all responses.
-3. When the request Origin is not in the allowed_origins list, no Access-Control-Allow-Origin header is added to the response.
-4. The Vary: Origin header is included in responses when allowed_origins is not ["*"] to ensure correct caching behavior.
-5. Access-Control-Expose-Headers is included in the response if expose_headers is configured in the route CORS middleware.
-6. Access-Control-Allow-Credentials is set to "true" when allow_credentials is enabled in the route CORS middleware.
-7. When allow_credentials is true, Access-Control-Allow-Origin must not be "*" but must echo the specific origin.
-8. CORS headers are added after the backend response is received, during response transformation.
-9. Routes without CORS middleware configured do not have any Access-Control headers added.
-
-### API
-
-### GET /api/users/123 (with CORS headers)
-
-**Request Headers:**
-```
-Origin: https://example.com
-X-API-Key: valid-service-key
-```
-
-**Response (200 OK):**
-```
-Access-Control-Allow-Origin: https://example.com
-Vary: Origin
-Content-Type: application/json
-
-{"id": 123, "name": "Jane Doe"}
-```
-
-### Request from disallowed origin
-
-**Request Headers:**
-```
-Origin: https://evil.com
-X-API-Key: valid-service-key
-```
-
-**Response (200 OK):**
-```
-Content-Type: application/json
-
-{"id": 123, "name": "Jane Doe"}
-```
-
-No Access-Control-Allow-Origin header is present in the response.
-
----
-
-## 12. REQ-RATE-001: Rate limiting with sliding window algorithm
-
-**Phase:** 3
-
-**Depends on:** REQ-AUTH-002
-
-*Protects backends from overload*
+*Request routing logic for the proxy*
 
 ### Acceptance Criteria
 
-1. Each API key is limited to 100 requests per minute by default.
-2. A key with rate_limit_override of 200 is allowed 200 requests per minute instead of the default.
-3. A route with middleware_config rate_limit of 50 applies a per-route limit of 50 requests per minute for any key.
-4. When a key exceeds its rate limit, the gateway returns 429 with a JSON error body.
-5. The sliding window algorithm considers the previous window's request count proportionally.
-6. Rate limit state is stored in memory (not persisted to SQLite).
-7. After the window resets, the key can make requests again without restart.
-8. Rate limiting runs after authentication but before proxying.
-9. The per-route limit applies in addition to the per-key limit; whichever is stricter takes effect.
-10. Admin endpoints are also subject to rate limiting using the same per-key limits.
+1. A route with path_pattern `/api/users/*` matches requests to `/api/users/123` and `/api/users/123/profile`.
+2. A route with path_pattern `/api/users` (no wildcard) matches only the exact path `/api/users`.
+3. When multiple routes match, the most specific pattern wins (e.g., `/api/users/admin` beats `/api/users/*`).
+4. A route with method `*` matches all HTTP methods (GET, POST, PUT, DELETE, PATCH).
+5. A route with method `GET` matches only GET requests; POST to the same path returns 404 if no other route matches.
+6. A request to a path with no matching route returns 404 with a JSON error body.
+7. Route matching is case-sensitive for path segments.
+8. The matched route is passed to the middleware chain for processing.
+9. A route with path_pattern `/api/v1/*` does not match `/api/v2/users`.
+10. Trailing slashes are normalized so `/api/users/` and `/api/users` match the same route.
 
 ### API
 
-### Rate limit exceeded
+### Proxy request (matched route)
 
-**Request:**
+Request:
 ```
 GET /api/users/123 HTTP/1.1
 X-API-Key: sk_test_abc123
 ```
 
-**Response (429 Too Many Requests):**
+Response: Proxied from the backend service associated with the matching route.
+
+### Proxy request (no matching route)
+
+Request:
+```
+GET /unknown/path HTTP/1.1
+X-API-Key: sk_test_abc123
+```
+
+Response (404):
 ```json
 {
-  "error": "rate limit exceeded",
-  "retry_after_seconds": 32
+  "error": "no route matches path /unknown/path"
 }
 ```
 
 ---
 
-## 13. REQ-LOG-001: Structured JSON request logging
-
-**Phase:** 3
-
-**Depends on:** REQ-AUTH-002
-
-*Operational observability and debugging*
-
-### Acceptance Criteria
-
-1. Every proxied request produces a JSON log entry written to stdout.
-2. Each log entry includes the fields: timestamp (ISO 8601), request_id (UUID), method, path, target_service, status_code, and latency_ms.
-3. Each log entry includes the client IP address in a `client_ip` field.
-4. Each log entry includes the api_key_id (not the key value) of the authenticated caller.
-5. Error responses (status >= 500) are logged at the "error" level.
-6. Client error responses (status 400-499) are logged at the "warn" level.
-7. Successful responses (status 200-299) are logged at the "info" level.
-8. Log entries for errors include an `error` field with a descriptive message.
-9. The log output is valid JSON with one entry per line (JSONL format).
-10. Gateway startup and shutdown events are logged with a "lifecycle" event type.
-11. Requests to /health are not logged at the info level to avoid log noise (debug level only).
-
-### API
-
-Not applicable. This is an internal logging requirement.
-
-### Example log entry
-
-```json
-{
-  "timestamp": "2026-01-01T00:00:00Z",
-  "level": "info",
-  "event": "proxy_request",
-  "request_id": "550e8400-e29b-41d4-a716-446655440000",
-  "method": "GET",
-  "path": "/api/users/123",
-  "target_service": "users-service",
-  "client_ip": "192.168.1.1",
-  "api_key_id": 5,
-  "status_code": 200,
-  "latency_ms": 42
-}
-```
-
----
-
-## 14. REQ-AUDIT-001: Audit log for all proxied requests
+## 10. REQ-AUDIT-001: Audit log for all proxied requests
 
 **Phase:** 3
 
@@ -829,15 +625,16 @@ Not applicable. This is an internal logging requirement.
 
 ### API
 
-### GET /admin/audit-log
+### Query Audit Log
 
-**Request:**
+**GET /admin/audit-log?service=users-service&method=GET&from=2026-01-01T00:00:00Z&to=2026-01-02T00:00:00Z**
+
+Request Headers:
 ```
-GET /admin/audit-log?service=users-service&method=GET&from=2026-01-01T00:00:00Z&to=2026-01-02T00:00:00Z
 X-API-Key: admin-key-value
 ```
 
-**Response (200 OK):**
+Response (200 OK):
 ```json
 {
   "entries": [
@@ -868,7 +665,53 @@ X-API-Key: admin-key-value
 
 ---
 
-## 15. REQ-LOG-002: Configurable log levels
+## 11. REQ-LOG-001: Structured JSON request logging
+
+**Phase:** 3
+
+**Depends on:** REQ-AUTH-002
+
+*Operational observability and debugging*
+
+### Acceptance Criteria
+
+1. Every proxied request produces a JSON log entry written to stdout.
+2. Each log entry includes the fields: timestamp (ISO 8601), request_id (UUID), method, path, target_service, status_code, and latency_ms.
+3. Each log entry includes the client IP address in a `client_ip` field.
+4. Each log entry includes the api_key_id (not the key value) of the authenticated caller.
+5. Error responses (status >= 500) are logged at the "error" level.
+6. Client error responses (status 400-499) are logged at the "warn" level.
+7. Successful responses (status 200-299) are logged at the "info" level.
+8. Log entries for errors include an `error` field with a descriptive message.
+9. The log output is valid JSON with one entry per line (JSONL format).
+10. Gateway startup and shutdown events are logged with a "lifecycle" event type.
+11. Requests to /health are not logged at the info level to avoid log noise (debug level only).
+
+### API
+
+Not applicable. This is an internal logging requirement.
+
+### Example Log Entry
+
+```json
+{
+  "timestamp": "2026-01-01T00:00:00Z",
+  "level": "info",
+  "event": "proxy_request",
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "method": "GET",
+  "path": "/api/users/123",
+  "target_service": "users-service",
+  "client_ip": "192.168.1.1",
+  "api_key_id": 5,
+  "status_code": 200,
+  "latency_ms": 42
+}
+```
+
+---
+
+## 12. REQ-LOG-002: Configurable log levels
 
 **Phase:** 3
 
@@ -899,9 +742,11 @@ gateway:
   log_level: debug
 ```
 
-### GET /health (with log level)
+### Health Response with Log Level
 
-**Response (200 OK):**
+**GET /health**
+
+Response (200 OK):
 ```json
 {
   "status": "healthy",
@@ -913,7 +758,48 @@ gateway:
 
 ---
 
-## 16. REQ-RATE-002: Rate limit response headers
+## 13. REQ-RATE-001: Rate limiting with sliding window algorithm
+
+**Phase:** 3
+
+**Depends on:** REQ-AUTH-002
+
+*Protects backends from overload*
+
+### Acceptance Criteria
+
+1. Each API key is limited to 100 requests per minute by default.
+2. A key with rate_limit_override of 200 is allowed 200 requests per minute instead of the default.
+3. A route with middleware_config rate_limit of 50 applies a per-route limit of 50 requests per minute for any key.
+4. When a key exceeds its rate limit, the gateway returns 429 with a JSON error body.
+5. The sliding window algorithm considers the previous window's request count proportionally.
+6. Rate limit state is stored in memory (not persisted to SQLite).
+7. After the window resets, the key can make requests again without restart.
+8. Rate limiting runs after authentication but before proxying.
+9. The per-route limit applies in addition to the per-key limit; whichever is stricter takes effect.
+10. Admin endpoints are also subject to rate limiting using the same per-key limits.
+
+### API
+
+### Rate limit exceeded
+
+Request:
+```
+GET /api/users/123 HTTP/1.1
+X-API-Key: sk_test_abc123
+```
+
+Response (429):
+```json
+{
+  "error": "rate limit exceeded",
+  "retry_after_seconds": 32
+}
+```
+
+---
+
+## 14. REQ-RATE-002: Rate limit response headers
 
 **Phase:** 3
 
@@ -935,13 +821,13 @@ gateway:
 
 ### Normal response with rate limit headers
 
-**Request:**
+Request:
 ```
 GET /api/users/123 HTTP/1.1
 X-API-Key: sk_test_abc123
 ```
 
-**Response headers:**
+Response headers:
 ```
 HTTP/1.1 200 OK
 X-RateLimit-Limit: 100
@@ -951,7 +837,7 @@ X-RateLimit-Reset: 1737020460
 
 ### Rate limit exceeded response
 
-**Response headers:**
+Response headers:
 ```
 HTTP/1.1 429 Too Many Requests
 X-RateLimit-Limit: 100
@@ -961,60 +847,136 @@ X-RateLimit-Reset: 1737020460
 
 ---
 
-## 17. REQ-METRICS-001: Per-service and per-route request metrics
+## 15. REQ-CORS-001: CORS preflight handling
 
-**Phase:** 8
+**Phase:** 4
 
-**Depends on:** REQ-AUDIT-001
+**Depends on:** REQ-ROUTE-001
 
-*Operational dashboard data*
+*Cross-origin browser access support*
 
 ### Acceptance Criteria
 
-1. Per-service counters track: total_requests, success_count (2xx), error_count (4xx and 5xx), and total_latency_ms.
-2. Average latency per service is computed as total_latency_ms / total_requests.
-3. Per-route counters track: request_count, cache_hits, and cache_misses.
-4. Cache hit rate per route is computed as cache_hits / (cache_hits + cache_misses).
-5. Global counters track: total_requests across all services and active_connections (concurrent in-flight requests).
-6. Counters are updated atomically to prevent race conditions under concurrent requests.
-7. Counter values persist across requests but reset on gateway restart (in-memory only).
-8. Requests rejected by the circuit breaker (503) increment the service error_count.
-9. Requests rejected by rate limiting (429) are counted in global total_requests but not in per-service counters.
-10. The metrics counters are also reconcilable against the audit log for consistency verification.
+1. An OPTIONS request to a route with CORS middleware configured returns a 204 No Content response without proxying to the backend.
+2. The preflight response includes the Access-Control-Allow-Origin header matching the request Origin if it is in the allowed_origins list.
+3. The preflight response includes Access-Control-Allow-Methods listing the methods from the route CORS allowed_methods configuration.
+4. The preflight response includes Access-Control-Allow-Headers listing the headers from the route CORS allowed_headers configuration.
+5. The preflight response includes Access-Control-Max-Age set to the route CORS max_age value in seconds.
+6. When allowed_origins is ["*"], the Access-Control-Allow-Origin header is set to "*".
+7. When the request Origin is not in the allowed_origins list, the preflight response omits the Access-Control-Allow-Origin header and returns 204 with no CORS headers.
+8. An OPTIONS request to a route without CORS middleware configured returns 404 or passes through the normal routing logic.
+9. Preflight responses are not recorded in the audit log as proxied requests.
+10. The gateway does not require API key authentication for OPTIONS preflight requests on CORS-enabled routes.
 
 ### API
 
-Not applicable. Metrics are exposed through REQ-METRICS-002 (metrics admin endpoint). This requirement defines the internal counters and tracking logic.
+### Route with CORS Middleware Configuration
 
-### Internal counter structure
+**POST /admin/routes**
 
+Request:
 ```json
 {
-  "per_service": {
-    "users-service": {
-      "total_requests": 1500,
-      "success_count": 1450,
-      "error_count": 50,
-      "total_latency_ms": 63000
+  "path_pattern": "/api/users/*",
+  "method": "*",
+  "service_id": 1,
+  "strip_prefix": true,
+  "timeout_ms": 5000,
+  "middleware_config": {
+    "cors": {
+      "allowed_origins": ["https://example.com", "https://app.example.com"],
+      "allowed_methods": ["GET", "POST", "PUT", "DELETE"],
+      "allowed_headers": ["Content-Type", "Authorization", "X-API-Key"],
+      "max_age": 3600
     }
-  },
-  "per_route": {
-    "/api/users/*": {
-      "request_count": 1200,
-      "cache_hits": 800,
-      "cache_misses": 400
-    }
-  },
-  "global": {
-    "total_requests": 5000,
-    "active_connections": 12
   }
 }
 ```
 
+### Preflight Request/Response
+
+**OPTIONS /api/users/123**
+
+Request Headers:
+```
+Origin: https://example.com
+Access-Control-Request-Method: POST
+Access-Control-Request-Headers: Content-Type, X-API-Key
+```
+
+Response (204 No Content):
+```
+Access-Control-Allow-Origin: https://example.com
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE
+Access-Control-Allow-Headers: Content-Type, Authorization, X-API-Key
+Access-Control-Max-Age: 3600
+```
+
 ---
 
-## 18. REQ-TRANSFORM-001: Request transformation before proxying
+## 16. REQ-CORS-002: CORS response headers on all requests
+
+**Phase:** 4
+
+**Depends on:** REQ-CORS-001
+
+*Browser enforces CORS on non-preflight requests too*
+
+### Acceptance Criteria
+
+1. Non-OPTIONS requests to CORS-enabled routes include Access-Control-Allow-Origin in the response, matching the request Origin against the allowed_origins list.
+2. When allowed_origins is ["*"], Access-Control-Allow-Origin is set to "*" on all responses.
+3. When the request Origin is not in the allowed_origins list, no Access-Control-Allow-Origin header is added to the response.
+4. The Vary: Origin header is included in responses when allowed_origins is not ["*"] to ensure correct caching behavior.
+5. Access-Control-Expose-Headers is included in the response if expose_headers is configured in the route CORS middleware.
+6. Access-Control-Allow-Credentials is set to "true" when allow_credentials is enabled in the route CORS middleware.
+7. When allow_credentials is true, Access-Control-Allow-Origin must not be "*" but must echo the specific origin.
+8. CORS headers are added after the backend response is received, during response transformation.
+9. Routes without CORS middleware configured do not have any Access-Control headers added.
+
+### API
+
+### Proxied Request with CORS Headers
+
+**GET /api/users/123**
+
+Request Headers:
+```
+Origin: https://example.com
+X-API-Key: valid-service-key
+```
+
+Response (200 OK):
+```
+Access-Control-Allow-Origin: https://example.com
+Vary: Origin
+Content-Type: application/json
+
+{"id": 123, "name": "Jane Doe"}
+```
+
+### Request from Disallowed Origin
+
+**GET /api/users/123**
+
+Request Headers:
+```
+Origin: https://evil.com
+X-API-Key: valid-service-key
+```
+
+Response (200 OK):
+```
+Content-Type: application/json
+
+{"id": 123, "name": "Jane Doe"}
+```
+
+No Access-Control-Allow-Origin header is present in the response.
+
+---
+
+## 17. REQ-TRANSFORM-001: Request transformation before proxying
 
 **Phase:** 4
 
@@ -1040,14 +1002,14 @@ Not applicable. Metrics are exposed through REQ-METRICS-002 (metrics admin endpo
 
 ### Proxied request transformation
 
-**Original request:**
+Original request:
 ```
 GET /api/users/123?include=profile HTTP/1.1
 Host: gateway.example.com
 X-API-Key: sk_test_abc123
 ```
 
-**Forwarded request (strip_prefix = true, route = /api/users/*):**
+Forwarded request (strip_prefix = true, route = /api/users/*):
 ```
 GET /123?include=profile HTTP/1.1
 Host: localhost:3001
@@ -1058,7 +1020,7 @@ X-Forwarded-Host: gateway.example.com
 
 ---
 
-## 19. REQ-TRANSFORM-002: Response transformation after proxying
+## 18. REQ-TRANSFORM-002: Response transformation after proxying
 
 **Phase:** 4
 
@@ -1081,7 +1043,7 @@ X-Forwarded-Host: gateway.example.com
 
 ### Proxied response with gateway headers
 
-**Backend response:**
+Backend response:
 ```
 HTTP/1.1 200 OK
 Content-Type: application/json
@@ -1089,7 +1051,7 @@ Content-Type: application/json
 {"id": 123, "name": "Alice"}
 ```
 
-**Gateway response to client:**
+Gateway response to client:
 ```
 HTTP/1.1 200 OK
 Content-Type: application/json
@@ -1103,7 +1065,7 @@ X-Cache: MISS
 
 ---
 
-## 20. REQ-CACHE-001: Response caching with configurable TTL
+## 19. REQ-CACHE-001: Response caching with configurable TTL
 
 **Phase:** 5
 
@@ -1130,13 +1092,13 @@ X-Cache: MISS
 
 ### Cache miss (first request)
 
-**Request:**
+Request:
 ```
 GET /api/users?page=1&sort=name HTTP/1.1
 X-API-Key: sk_test_abc123
 ```
 
-**Response (200, X-Cache: MISS):**
+Response (200, X-Cache: MISS):
 ```json
 {
   "users": [{"id": 1, "name": "Alice"}],
@@ -1146,13 +1108,13 @@ X-API-Key: sk_test_abc123
 
 ### Cache hit (subsequent request within TTL)
 
-**Request:**
+Request:
 ```
 GET /api/users?sort=name&page=1 HTTP/1.1
 X-API-Key: sk_test_abc123
 ```
 
-**Response (200, X-Cache: HIT):**
+Response (200, X-Cache: HIT):
 ```json
 {
   "users": [{"id": 1, "name": "Alice"}],
@@ -1164,7 +1126,7 @@ Note: The query parameters are sorted, so `?page=1&sort=name` and `?sort=name&pa
 
 ---
 
-## 21. REQ-CACHE-002: Cache bypass and invalidation
+## 20. REQ-CACHE-002: Cache bypass and invalidation
 
 **Phase:** 5
 
@@ -1187,14 +1149,14 @@ Note: The query parameters are sorted, so `?page=1&sort=name` and `?sort=name&pa
 
 ### Cache bypass request
 
-**Request:**
+Request:
 ```
 GET /api/users HTTP/1.1
 X-API-Key: sk_test_abc123
 Cache-Control: no-cache
 ```
 
-**Response (200):**
+Response (200):
 ```
 X-Cache: MISS
 Content-Type: application/json
@@ -1204,13 +1166,13 @@ Content-Type: application/json
 
 ### Clear all cache entries
 
-**Request:**
+Request:
 ```
 DELETE /admin/cache HTTP/1.1
 X-API-Key: sk_admin_key
 ```
 
-**Response (204):**
+Response (204):
 ```json
 {
   "cleared": 42
@@ -1219,7 +1181,7 @@ X-API-Key: sk_admin_key
 
 ---
 
-## 22. REQ-CIRCUIT-001: Circuit breaker with state machine
+## 21. REQ-CIRCUIT-001: Circuit breaker with state machine
 
 **Phase:** 6
 
@@ -1246,13 +1208,13 @@ X-API-Key: sk_admin_key
 
 ### Circuit breaker open response
 
-**Request:**
+Request:
 ```
 GET /api/users/123 HTTP/1.1
 X-API-Key: sk_test_abc123
 ```
 
-**Response (503 Service Unavailable):**
+Response (503):
 ```json
 {
   "error": "service unavailable",
@@ -1264,7 +1226,7 @@ X-API-Key: sk_test_abc123
 
 ---
 
-## 23. REQ-CIRCUIT-002: Circuit breaker admin endpoints
+## 22. REQ-CIRCUIT-002: Circuit breaker admin endpoints
 
 **Phase:** 6
 
@@ -1287,7 +1249,7 @@ X-API-Key: sk_test_abc123
 
 ### GET /admin/circuit-breakers
 
-**Response (200 OK):**
+Response (200):
 ```json
 [
   {
@@ -1311,7 +1273,7 @@ X-API-Key: sk_test_abc123
 
 ### POST /admin/circuit-breakers/:service_id/reset
 
-**Response (200 OK):**
+Response (200):
 ```json
 {
   "service_id": 1,
@@ -1326,7 +1288,7 @@ X-API-Key: sk_test_abc123
 
 ---
 
-## 24. REQ-RETRY-001: Retry with exponential backoff
+## 23. REQ-RETRY-001: Retry with exponential backoff
 
 **Phase:** 7
 
@@ -1352,13 +1314,13 @@ X-API-Key: sk_test_abc123
 
 ### Retry exhausted response
 
-**Request:**
+Request:
 ```
 GET /api/users/123 HTTP/1.1
 X-API-Key: sk_test_abc123
 ```
 
-**Response (after 2 retries, all returning 503):**
+Response (after 2 retries, all returning 503):
 ```
 HTTP/1.1 503 Service Unavailable
 X-Request-ID: 550e8400-e29b-41d4-a716-446655440000
@@ -1371,7 +1333,13 @@ X-Retry-Count: 2
 
 ### Successful retry
 
-**Response (backend returned 503 on first attempt, 200 on retry):**
+Request:
+```
+GET /api/users/123 HTTP/1.1
+X-API-Key: sk_test_abc123
+```
+
+Response (backend returned 503 on first attempt, 200 on retry):
 ```
 HTTP/1.1 200 OK
 X-Request-ID: 550e8400-e29b-41d4-a716-446655440000
@@ -1382,7 +1350,7 @@ X-Retry-Count: 1
 
 ---
 
-## 25. REQ-RETRY-002: Retry safety for non-idempotent methods
+## 24. REQ-RETRY-002: Retry safety for non-idempotent methods
 
 **Phase:** 7
 
@@ -1405,11 +1373,11 @@ X-Retry-Count: 1
 
 ### API
 
-### Route configuration with retry safety override
+### Route Configuration with Retry Safety Override
 
 **PUT /admin/routes/:id**
 
-**Request:**
+Request:
 ```json
 {
   "path_pattern": "/api/orders/*",
@@ -1424,7 +1392,7 @@ X-Retry-Count: 1
 }
 ```
 
-**Response (200 OK):**
+Response (200 OK):
 ```json
 {
   "id": 3,
@@ -1438,6 +1406,59 @@ X-Retry-Count: 1
     "retry_non_idempotent": true
   },
   "created_at": "2026-01-01T00:00:00Z"
+}
+```
+
+---
+
+## 25. REQ-METRICS-001: Per-service and per-route request metrics
+
+**Phase:** 8
+
+**Depends on:** REQ-AUDIT-001
+
+*Operational dashboard data*
+
+### Acceptance Criteria
+
+1. Per-service counters track: total_requests, success_count (2xx), error_count (4xx and 5xx), and total_latency_ms.
+2. Average latency per service is computed as total_latency_ms / total_requests.
+3. Per-route counters track: request_count, cache_hits, and cache_misses.
+4. Cache hit rate per route is computed as cache_hits / (cache_hits + cache_misses).
+5. Global counters track: total_requests across all services and active_connections (concurrent in-flight requests).
+6. Counters are updated atomically to prevent race conditions under concurrent requests.
+7. Counter values persist across requests but reset on gateway restart (in-memory only).
+8. Requests rejected by the circuit breaker (503) increment the service error_count.
+9. Requests rejected by rate limiting (429) are counted in global total_requests but not in per-service counters.
+10. The metrics counters are also reconcilable against the audit log for consistency verification.
+
+### API
+
+Not applicable. Metrics are exposed through REQ-METRICS-002 (metrics admin endpoint). This requirement defines the internal counters and tracking logic.
+
+### Internal Counter Structure
+
+```json
+{
+  "per_service": {
+    "users-service": {
+      "total_requests": 1500,
+      "success_count": 1450,
+      "error_count": 50,
+      "total_latency_ms": 63000
+    }
+  },
+  "per_route": {
+    "/api/users/*": {
+      "request_count": 1200,
+      "cache_hits": 800,
+      "cache_misses": 400
+    }
+  },
+  "global": {
+    "total_requests": 5000,
+    "active_connections": 12
+  }
 }
 ```
 
@@ -1469,9 +1490,9 @@ X-Retry-Count: 1
 
 Not applicable. This is a background process. Health check results are visible through:
 
-### GET /health/services
+**GET /health/services** (see REQ-HEALTH-001)
 
-**Response (200 OK):**
+Response (200 OK):
 ```json
 [
   {
@@ -1482,9 +1503,9 @@ Not applicable. This is a background process. Health check results are visible t
 ]
 ```
 
-### GET /admin/services
+**GET /admin/services**
 
-**Response (200 OK):**
+Response (200 OK):
 ```json
 [
   {
@@ -1524,14 +1545,16 @@ Not applicable. This is a background process. Health check results are visible t
 
 ### API
 
-### GET /admin/metrics
+### Get Metrics
 
-**Request Headers:**
+**GET /admin/metrics**
+
+Request Headers:
 ```
 X-API-Key: admin-key-value
 ```
 
-**Response (200 OK):**
+Response (200 OK):
 ```json
 {
   "computed_at": "2026-01-01T12:00:00Z",
@@ -1595,14 +1618,16 @@ X-API-Key: admin-key-value
 
 ### API
 
-### POST /admin/config/reload
+### Reload Configuration
 
-**Request Headers:**
+**POST /admin/config/reload**
+
+Request Headers:
 ```
 X-API-Key: admin-key-value
 ```
 
-**Response (200 OK):**
+Response (200 OK):
 ```json
 {
   "status": "reloaded",
@@ -1616,9 +1641,11 @@ X-API-Key: admin-key-value
 }
 ```
 
-### POST /admin/config/reload (validation error)
+### Reload with Validation Error
 
-**Response (400 Bad Request):**
+**POST /admin/config/reload**
+
+Response (400 Bad Request):
 ```json
 {
   "error": "validation_failed",
@@ -1656,7 +1683,32 @@ X-API-Key: admin-key-value
 
 Not applicable. This is a test infrastructure requirement.
 
-### Example test structure
+### Example Mock Backend Setup
+
+```python
+# Mock backend that simulates various responses
+class MockBackend:
+    def __init__(self, port):
+        self.port = port
+        self.responses = {}
+
+    def configure_response(self, path, status_code, body, latency_ms=0):
+        self.responses[path] = {
+            "status_code": status_code,
+            "body": body,
+            "latency_ms": latency_ms
+        }
+
+    def start(self):
+        # Start HTTP server on self.port
+        pass
+
+    def stop(self):
+        # Stop HTTP server
+        pass
+```
+
+### Example Test Structure
 
 ```
 tests/

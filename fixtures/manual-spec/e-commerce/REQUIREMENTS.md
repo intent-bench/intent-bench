@@ -8,7 +8,7 @@ depend on earlier ones being complete.
 
 ---
 
-## 1. REQ-DB-001: Database Schema
+## 1. REQ-DB-001: Database setup with SQLite and schema migrations
 
 **Phase:** 1
 
@@ -36,7 +36,7 @@ depend on earlier ones being complete.
 
 ---
 
-## 2. REQ-AUTH-001: User Registration
+## 2. REQ-AUTH-001: User registration with password hashing and roles
 
 **Phase:** 1
 
@@ -96,7 +96,7 @@ depend on earlier ones being complete.
 
 ---
 
-## 3. REQ-AUTH-002: JWT Authentication
+## 3. REQ-AUTH-002: JWT login and authentication middleware
 
 **Phase:** 1
 
@@ -150,89 +150,13 @@ depend on earlier ones being complete.
 
 ---
 
-## 4. REQ-VALID-001: Input Validation
-
-**Phase:** 2
-
-**Depends on:** REQ-DB-001
-
-*Prevents corrupt data and provides clear error messages*
-
-### Acceptance Criteria
-
-1. Email fields must conform to a valid email format; invalid emails return 422 with a descriptive error.
-2. Username must be 3-30 characters and contain only alphanumeric characters; violations return 422.
-3. Password must be at least 8 characters; shorter passwords return 422.
-4. Product name must be non-empty; empty names return 422.
-5. Product price must be greater than 0; zero or negative prices return 422.
-6. Product SKU must be non-empty; empty SKUs return 422.
-7. Review rating must be an integer between 1 and 5 inclusive; out-of-range values return 422.
-8. Discount code percent must be an integer between 1 and 100 inclusive; out-of-range values return 422.
-9. Date fields must conform to ISO 8601 format; invalid dates return 422.
-10. Quantity fields must be positive integers; zero or negative quantities return 422.
-11. Requests without a valid authentication token return 401 Unauthorized.
-12. Requests where the authenticated user lacks required permissions return 403 Forbidden.
-13. Requests referencing a non-existent resource return 404 Not Found.
-14. Requests that violate uniqueness constraints (duplicate email, username, SKU, review) return 409 Conflict.
-
-### API
-
-All validation errors follow a consistent format.
-
-**Error (422 Unprocessable Entity):**
-```json
-{
-  "error": "validation failed",
-  "details": [
-    {
-      "field": "email",
-      "message": "invalid email format"
-    },
-    {
-      "field": "password",
-      "message": "password must be at least 8 characters"
-    }
-  ]
-}
-```
-
-**Error (401 Unauthorized):**
-```json
-{
-  "error": "authentication required"
-}
-```
-
-**Error (403 Forbidden):**
-```json
-{
-  "error": "insufficient permissions"
-}
-```
-
-**Error (404 Not Found):**
-```json
-{
-  "error": "resource not found"
-}
-```
-
-**Error (409 Conflict):**
-```json
-{
-  "error": "email already registered"
-}
-```
-
----
-
-## 5. REQ-AUTH-003: User Profile
+## 4. REQ-AUTH-003: User profile view and update
 
 **Phase:** 2
 
 **Depends on:** REQ-AUTH-002
 
-*Profile management for authenticated users*
+*User self-service account management*
 
 ### Acceptance Criteria
 
@@ -298,13 +222,13 @@ All validation errors follow a consistent format.
 
 ---
 
-## 6. REQ-NOTIF-001: Notification System
+## 5. REQ-NOTIF-001: Notification system infrastructure
 
 **Phase:** 2
 
 **Depends on:** REQ-AUTH-001
 
-*Notification infrastructure for user communications*
+*Notification delivery infrastructure*
 
 ### Acceptance Criteria
 
@@ -388,7 +312,85 @@ Authorization: Bearer <token>
 
 ---
 
-## 7. REQ-PROD-001: Product CRUD
+## 6. REQ-VALID-001: Input validation on all endpoints
+
+**Phase:** 2
+
+**Depends on:** REQ-DB-001
+
+*Prevents corrupt data and provides clear error messages*
+
+### Acceptance Criteria
+
+1. Email fields must conform to a valid email format; invalid emails return 422 with a descriptive error.
+2. Username must be 3-30 characters and contain only alphanumeric characters; violations return 422.
+3. Password must be at least 8 characters; shorter passwords return 422.
+4. Product name must be non-empty; empty names return 422.
+5. Product price must be greater than 0; zero or negative prices return 422.
+6. Product SKU must be non-empty; empty SKUs return 422.
+7. Review rating must be an integer between 1 and 5 inclusive; out-of-range values return 422.
+8. Discount code percent must be an integer between 1 and 100 inclusive; out-of-range values return 422.
+9. Date fields must conform to ISO 8601 format; invalid dates return 422.
+10. Quantity fields must be positive integers; zero or negative quantities return 422.
+11. Requests without a valid authentication token return 401 Unauthorized.
+12. Requests where the authenticated user lacks required permissions return 403 Forbidden.
+13. Requests referencing a non-existent resource return 404 Not Found.
+14. Requests that violate uniqueness constraints (duplicate email, username, SKU, review) return 409 Conflict.
+
+### API
+
+### Error response format
+
+All validation errors follow a consistent format.
+
+**Error (422 Unprocessable Entity):**
+```json
+{
+  "error": "validation failed",
+  "details": [
+    {
+      "field": "email",
+      "message": "invalid email format"
+    },
+    {
+      "field": "password",
+      "message": "password must be at least 8 characters"
+    }
+  ]
+}
+```
+
+**Error (401 Unauthorized):**
+```json
+{
+  "error": "authentication required"
+}
+```
+
+**Error (403 Forbidden):**
+```json
+{
+  "error": "insufficient permissions"
+}
+```
+
+**Error (404 Not Found):**
+```json
+{
+  "error": "resource not found"
+}
+```
+
+**Error (409 Conflict):**
+```json
+{
+  "error": "email already registered"
+}
+```
+
+---
+
+## 7. REQ-PROD-001: Product CRUD with admin-only write access
 
 **Phase:** 2
 
@@ -542,13 +544,13 @@ Authorization: Bearer <token>
 
 ---
 
-## 8. REQ-PROD-002: Product Categories
+## 8. REQ-PROD-002: Product categories with nested tree structure
 
 **Phase:** 2
 
 **Depends on:** REQ-PROD-001
 
-*Hierarchical categorization of products*
+*Categories organize the product catalog*
 
 ### Acceptance Criteria
 
@@ -685,13 +687,13 @@ Authorization: Bearer <token>
 
 ---
 
-## 9. REQ-INV-001: Inventory Tracking
+## 9. REQ-INV-001: Inventory tracking with stock levels and low-stock alerts
 
 **Phase:** 2
 
 **Depends on:** REQ-PROD-001
 
-*Stock management for products*
+*Inventory is required for cart validation and order placement*
 
 ### Acceptance Criteria
 
@@ -783,13 +785,13 @@ Authorization: Bearer <token>
 
 ---
 
-## 10. REQ-AUDIT-001: Audit Logging
+## 10. REQ-AUDIT-001: Audit log for all mutations
 
 **Phase:** 3
 
 **Depends on:** REQ-AUTH-002
 
-*Append-only audit trail for compliance and debugging*
+*Compliance and operational visibility*
 
 ### Acceptance Criteria
 
@@ -862,13 +864,13 @@ Authorization: Bearer <admin_token>
 
 ---
 
-## 11. REQ-PROD-003: Product Search
+## 11. REQ-PROD-003: Product search and filtering
 
 **Phase:** 3
 
 **Depends on:** REQ-PROD-001, REQ-PROD-002
 
-*Search and filtering capabilities for the product catalog*
+*Discovery mechanism for customers*
 
 ### Acceptance Criteria
 
@@ -924,13 +926,13 @@ Authorization: Bearer <admin_token>
 
 ---
 
-## 12. REQ-CART-001: Shopping Cart
+## 12. REQ-CART-001: Shopping cart CRUD operations
 
 **Phase:** 3
 
 **Depends on:** REQ-AUTH-002, REQ-PROD-001, REQ-INV-001
 
-*Cart management for authenticated users*
+*Cart is the bridge between browsing and purchasing*
 
 ### Acceptance Criteria
 
@@ -1045,13 +1047,13 @@ Authorization: Bearer <admin_token>
 
 ---
 
-## 13. REQ-CART-002: Cart Validation
+## 13. REQ-CART-002: Cart item validation against available inventory
 
 **Phase:** 3
 
 **Depends on:** REQ-CART-001
 
-*Inventory-aware cart validation*
+*Prevents overselling*
 
 ### Acceptance Criteria
 
@@ -1135,13 +1137,13 @@ Authorization: Bearer <admin_token>
 
 ---
 
-## 14. REQ-DISC-001: Discount Codes
+## 14. REQ-DISC-001: Discount code creation and application
 
 **Phase:** 3
 
 **Depends on:** REQ-PROD-001, REQ-CART-001
 
-*Discount code management and cart application*
+*Revenue management and promotions*
 
 ### Acceptance Criteria
 
@@ -1245,13 +1247,13 @@ Authorization: Bearer <admin_token>
 
 ---
 
-## 15. REQ-ORD-001: Order Placement
+## 15. REQ-ORD-001: Order placement from cart with inventory reservation
 
 **Phase:** 4
 
 **Depends on:** REQ-CART-001
 
-*Atomic cart-to-order conversion*
+*Orders are the core transaction entity*
 
 ### Acceptance Criteria
 
@@ -1335,13 +1337,13 @@ Authorization: Bearer <admin_token>
 
 ---
 
-## 16. REQ-ORD-002: Order Status
+## 16. REQ-ORD-002: Order status tracking and history
 
 **Phase:** 4
 
 **Depends on:** REQ-ORD-001
 
-*Order status state machine with valid transitions*
+*Order lifecycle management*
 
 ### Acceptance Criteria
 
@@ -1461,13 +1463,13 @@ Authorization: Bearer <admin_token>
 
 ---
 
-## 17. REQ-PAY-001: Payment Processing
+## 17. REQ-PAY-001: Payment processing with mock processor
 
 **Phase:** 4
 
 **Depends on:** REQ-ORD-001
 
-*Mock payment processor for order payment*
+*Payments complete the purchase flow*
 
 ### Acceptance Criteria
 
@@ -1529,82 +1531,13 @@ Authorization: Bearer <admin_token>
 
 ---
 
-## 18. REQ-SHIP-001: Shipment Creation
-
-**Phase:** 5
-
-**Depends on:** REQ-ORD-001
-
-*Fulfillment shipment creation for paid orders*
-
-### Acceptance Criteria
-
-1. POST /orders/:id/ship creates a new shipment record for the specified order.
-2. Only users with the admin role may create shipments.
-3. POST /orders/:id/ship returns 403 if the authenticated user is not an admin.
-4. Only orders in "paid" status can be shipped.
-5. POST /orders/:id/ship returns 400 if the order is not in "paid" status.
-6. The request must include carrier and tracking_number fields.
-7. POST /orders/:id/ship returns 422 if carrier or tracking_number is missing.
-8. The shipment record is created with status "processing".
-9. A successful shipment creation transitions the order status from "paid" to "shipped".
-10. Upon shipment creation, reserved_quantity for each order item is deducted from inventory (actual stock reduction).
-11. POST /orders/:id/ship returns 404 if the order does not exist.
-
-### API
-
-### POST /orders/:id/ship
-
-**Request:**
-```json
-{
-  "carrier": "FedEx",
-  "tracking_number": "FX-1234567890"
-}
-```
-
-**Response (201 Created):**
-```json
-{
-  "id": 1,
-  "order_id": 5,
-  "carrier": "FedEx",
-  "tracking_number": "FX-1234567890",
-  "status": "processing",
-  "created_at": "2026-01-22T08:00:00Z"
-}
-```
-
-**Error (400 Bad Request):**
-```json
-{
-  "error": "only paid orders can be shipped"
-}
-```
-
-**Error (403 Forbidden):**
-```json
-{
-  "error": "admin access required"
-}
-```
-
-**Error (422 Unprocessable Entity):**
-```json
-{
-  "error": "carrier and tracking_number are required"
-}
-```
-
----
-
-## 19. REQ-ORD-003: Order History
+## 18. REQ-ORD-003: Order history listing
 
 **Phase:** 5
 
 **Depends on:** REQ-ORD-002
 
-*Order listing, detail, history, and cancellation*
+*Customer order tracking*
 
 ### Acceptance Criteria
 
@@ -1719,13 +1652,13 @@ Authorization: Bearer <token>
 
 ---
 
-## 20. REQ-PAY-002: Payment Refunds
+## 19. REQ-PAY-002: Payment refunds for paid orders
 
 **Phase:** 5
 
 **Depends on:** REQ-PAY-001, REQ-ORD-002
 
-*Admin-initiated refunds for paid orders*
+*Customer satisfaction and dispute resolution*
 
 ### Acceptance Criteria
 
@@ -1779,13 +1712,82 @@ Authorization: Bearer <admin_token>
 
 ---
 
-## 21. REQ-SHIP-002: Shipment Status
+## 20. REQ-SHIP-001: Shipment creation and tracking
+
+**Phase:** 5
+
+**Depends on:** REQ-ORD-001
+
+*Fulfillment initiates delivery*
+
+### Acceptance Criteria
+
+1. POST /orders/:id/ship creates a new shipment record for the specified order.
+2. Only users with the admin role may create shipments.
+3. POST /orders/:id/ship returns 403 if the authenticated user is not an admin.
+4. Only orders in "paid" status can be shipped.
+5. POST /orders/:id/ship returns 400 if the order is not in "paid" status.
+6. The request must include carrier and tracking_number fields.
+7. POST /orders/:id/ship returns 422 if carrier or tracking_number is missing.
+8. The shipment record is created with status "processing".
+9. A successful shipment creation transitions the order status from "paid" to "shipped".
+10. Upon shipment creation, reserved_quantity for each order item is deducted from inventory (actual stock reduction).
+11. POST /orders/:id/ship returns 404 if the order does not exist.
+
+### API
+
+### POST /orders/:id/ship
+
+**Request:**
+```json
+{
+  "carrier": "FedEx",
+  "tracking_number": "FX-1234567890"
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "id": 1,
+  "order_id": 5,
+  "carrier": "FedEx",
+  "tracking_number": "FX-1234567890",
+  "status": "processing",
+  "created_at": "2026-01-22T08:00:00Z"
+}
+```
+
+**Error (400 Bad Request):**
+```json
+{
+  "error": "only paid orders can be shipped"
+}
+```
+
+**Error (403 Forbidden):**
+```json
+{
+  "error": "admin access required"
+}
+```
+
+**Error (422 Unprocessable Entity):**
+```json
+{
+  "error": "carrier and tracking_number are required"
+}
+```
+
+---
+
+## 21. REQ-SHIP-002: Shipment status tracking and delivery confirmation
 
 **Phase:** 5
 
 **Depends on:** REQ-SHIP-001, REQ-ORD-002
 
-*Shipment lifecycle tracking with forward-only transitions*
+*Delivery tracking and confirmation*
 
 ### Acceptance Criteria
 
@@ -1870,13 +1872,95 @@ Authorization: Bearer <admin_token>
 
 ---
 
-## 22. REQ-REV-001: Review Submission
+## 22. REQ-NOTIF-002: Automated order lifecycle notifications
+
+**Phase:** 6
+
+**Depends on:** REQ-NOTIF-001, REQ-ORD-002, REQ-SHIP-002
+
+*Customer communication throughout order lifecycle*
+
+### Acceptance Criteria
+
+1. An "order_placed" notification is created for the user when POST /orders succeeds.
+2. A "payment_received" notification is created for the user when POST /orders/:id/pay succeeds.
+3. An "order_shipped" notification is created for the user when POST /orders/:id/ship succeeds.
+4. An "order_delivered" notification is created for the user when a shipment status is updated to "delivered".
+5. Each notification includes the order ID in the body text.
+6. The "order_placed" notification body includes the order total.
+7. The "payment_received" notification body includes the payment amount and transaction ID.
+8. The "order_shipped" notification body includes the carrier and tracking number.
+9. The "order_delivered" notification body includes the delivery timestamp.
+10. All auto-created notifications have is_read set to false.
+11. Notifications are created for the order owner, not the admin performing the action.
+
+### API
+
+### Automatic notification creation (no dedicated endpoint)
+
+Notifications are created as side effects of existing endpoints. The following examples show the notification records produced.
+
+**order_placed notification:**
+```json
+{
+  "id": 1,
+  "user_id": 1,
+  "type": "order_placed",
+  "subject": "Order Confirmed",
+  "body": "Your order #5 has been placed. Total: $79.98.",
+  "is_read": false,
+  "created_at": "2026-01-20T14:00:00Z"
+}
+```
+
+**payment_received notification:**
+```json
+{
+  "id": 2,
+  "user_id": 1,
+  "type": "payment_received",
+  "subject": "Payment Received",
+  "body": "Payment of $79.98 received for order #5. Transaction: a1b2c3d4-e5f6-7890-abcd-ef1234567890.",
+  "is_read": false,
+  "created_at": "2026-01-20T14:05:00Z"
+}
+```
+
+**order_shipped notification:**
+```json
+{
+  "id": 3,
+  "user_id": 1,
+  "type": "order_shipped",
+  "subject": "Order Shipped",
+  "body": "Your order #5 has been shipped via FedEx. Tracking: FX-1234567890.",
+  "is_read": false,
+  "created_at": "2026-01-22T08:00:00Z"
+}
+```
+
+**order_delivered notification:**
+```json
+{
+  "id": 4,
+  "user_id": 1,
+  "type": "order_delivered",
+  "subject": "Order Delivered",
+  "body": "Your order #5 was delivered on 2026-01-25T15:30:00Z.",
+  "is_read": false,
+  "created_at": "2026-01-25T15:30:00Z"
+}
+```
+
+---
+
+## 23. REQ-REV-001: Product review submission
 
 **Phase:** 6
 
 **Depends on:** REQ-AUTH-002, REQ-PROD-001, REQ-ORD-002, REQ-SHIP-002
 
-*Product reviews from verified purchasers*
+*Customer feedback drives product quality*
 
 ### Acceptance Criteria
 
@@ -1971,13 +2055,13 @@ GET /products/3/reviews?page=1&per_page=10
 
 ---
 
-## 23. REQ-REV-002: Review Moderation
+## 24. REQ-REV-002: Review moderation and listing
 
 **Phase:** 6
 
 **Depends on:** REQ-REV-001
 
-*Admin approval and deletion of reviews*
+*Content quality control*
 
 ### Acceptance Criteria
 
@@ -2056,93 +2140,13 @@ Authorization: Bearer <admin_token>
 
 ---
 
-## 24. REQ-NOTIF-002: Order Notifications
-
-**Phase:** 6
-
-**Depends on:** REQ-NOTIF-001, REQ-ORD-002, REQ-SHIP-002
-
-*Automated notifications at order lifecycle events*
-
-### Acceptance Criteria
-
-1. An "order_placed" notification is created for the user when POST /orders succeeds.
-2. A "payment_received" notification is created for the user when POST /orders/:id/pay succeeds.
-3. An "order_shipped" notification is created for the user when POST /orders/:id/ship succeeds.
-4. An "order_delivered" notification is created for the user when a shipment status is updated to "delivered".
-5. Each notification includes the order ID in the body text.
-6. The "order_placed" notification body includes the order total.
-7. The "payment_received" notification body includes the payment amount and transaction ID.
-8. The "order_shipped" notification body includes the carrier and tracking number.
-9. The "order_delivered" notification body includes the delivery timestamp.
-10. All auto-created notifications have is_read set to false.
-11. Notifications are created for the order owner, not the admin performing the action.
-
-### API
-
-Notifications are created as side effects of existing endpoints. The following examples show the notification records produced.
-
-**order_placed notification:**
-```json
-{
-  "id": 1,
-  "user_id": 1,
-  "type": "order_placed",
-  "subject": "Order Confirmed",
-  "body": "Your order #5 has been placed. Total: $79.98.",
-  "is_read": false,
-  "created_at": "2026-01-20T14:00:00Z"
-}
-```
-
-**payment_received notification:**
-```json
-{
-  "id": 2,
-  "user_id": 1,
-  "type": "payment_received",
-  "subject": "Payment Received",
-  "body": "Payment of $79.98 received for order #5. Transaction: a1b2c3d4-e5f6-7890-abcd-ef1234567890.",
-  "is_read": false,
-  "created_at": "2026-01-20T14:05:00Z"
-}
-```
-
-**order_shipped notification:**
-```json
-{
-  "id": 3,
-  "user_id": 1,
-  "type": "order_shipped",
-  "subject": "Order Shipped",
-  "body": "Your order #5 has been shipped via FedEx. Tracking: FX-1234567890.",
-  "is_read": false,
-  "created_at": "2026-01-22T08:00:00Z"
-}
-```
-
-**order_delivered notification:**
-```json
-{
-  "id": 4,
-  "user_id": 1,
-  "type": "order_delivered",
-  "subject": "Order Delivered",
-  "body": "Your order #5 was delivered on 2026-01-25T15:30:00Z.",
-  "is_read": false,
-  "created_at": "2026-01-25T15:30:00Z"
-}
-```
-
----
-
-## 25. REQ-TEST-001: Comprehensive Test Suite
+## 25. REQ-TEST-001: Comprehensive test suite with single-command execution
 
 **Phase:** 7
 
 **Depends on:** REQ-AUTH-003, REQ-PROD-003, REQ-CART-002, REQ-DISC-001, REQ-ORD-003, REQ-PAY-002, REQ-SHIP-002, REQ-REV-002, REQ-NOTIF-002, REQ-AUDIT-001, REQ-VALID-001
 
-*Verification depends on test coverage across all requirements*
+*Verification depends on test coverage*
 
 ### Acceptance Criteria
 
@@ -2163,5 +2167,9 @@ Notifications are created as side effects of existing endpoints. The following e
 15. Error code tests cover 401 (missing/invalid token), 403 (insufficient permissions), 404 (missing resource), and 409 (uniqueness violations).
 16. The test command exits 0 when all tests pass and non-zero when any test fails.
 17. Test output clearly identifies which tests passed and which failed.
+
+### API
+
+Not applicable. This requirement covers testing of all other requirements' endpoints.
 
 ---
