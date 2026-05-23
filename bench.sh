@@ -68,6 +68,7 @@ Run options:
   --agent <name>                   Agent wrapper (default: $DEFAULT_AGENT)
   --runs <N>                       Number of runs (default: $DEFAULT_RUNS)
   --model <model>                  Model ID (default: $DEFAULT_MODEL)
+  --timeout <seconds>               Wall clock limit per run (default: from experiment yaml, or 1800)
   --dry-run                        Validate setup without invoking model
 
 Examples:
@@ -96,6 +97,7 @@ load_experiment() {
     EXP_BUDGET=$(python3 -c "import yaml; print(yaml.safe_load(open('$config')).get('max_budget_usd', '5.00'))" 2>/dev/null || echo "5.00")
     EXP_TREATMENT=$(python3 -c "import yaml; print(yaml.safe_load(open('$config')).get('treatment', 'rtmx'))" 2>/dev/null || echo "rtmx")
     EXP_AGENT=$(python3 -c "import yaml; print(yaml.safe_load(open('$config')).get('agent', 'claude-code'))" 2>/dev/null || echo "claude-code")
+    EXP_MAX_WALL_CLOCK=$(python3 -c "import yaml; print(yaml.safe_load(open('$config')).get('max_wall_clock_seconds', '1800'))" 2>/dev/null || echo "1800")
 
     if [[ -z "$EXP_TEST_CMD" ]]; then
         echo "ERROR: Experiment '$name' has no test_command defined" >&2
@@ -225,20 +227,46 @@ execute_run() {
     local start_time
     start_time=$(date +%s)
 
-    # Delegate to agent wrapper
+    # Delegate to agent wrapper with timeout watchdog
     local agent_script="$SCRIPT_DIR/agents/${agent}.sh"
     local exit_code=0
+    local timed_out=0
+    local max_time="${EXP_MAX_WALL_CLOCK:-1800}"
     export BENCH_TEST_CMD="$EXP_TEST_CMD"
     run_in_new_pgroup bash "$agent_script" \
         "$workdir" "$model" "$prompt" "$result_dir" "$EXP_BUDGET" &
     local agent_pid=$!
     CURRENT_PGID=$agent_pid
+
+    # Watchdog: kill agent process group after max_time
+    # Watchdog: kill agent process tree after max_time.
+    # Uses pkill -P to kill children recursively since setsid creates
+    # a new session where child processes may escape process group signals.
+    (sleep "$max_time" && {
+        kill -TERM -"$agent_pid" 2>/dev/null || true
+        pkill -TERM -P "$agent_pid" 2>/dev/null || true
+        sleep 5
+        kill -KILL -"$agent_pid" 2>/dev/null || true
+        pkill -KILL -P "$agent_pid" 2>/dev/null || true
+    }) &
+    local watchdog_pid=$!
+
     wait "$agent_pid" || exit_code=$?
     CURRENT_PGID=""
+
+    # Cancel watchdog if agent finished before timeout
+    kill "$watchdog_pid" 2>/dev/null || true
+    wait "$watchdog_pid" 2>/dev/null || true
 
     local end_time
     end_time=$(date +%s)
     local wall_clock=$((end_time - start_time))
+
+    # Detect timeout: if wall clock meets or exceeds limit, agent was killed
+    if [[ $wall_clock -ge $max_time ]]; then
+        timed_out=1
+        echo "  [TIMEOUT] Agent killed after ${max_time}s limit"
+    fi
 
     # Extract token counts from transcript
     local input_tokens=0 output_tokens=0 total_tokens=0
@@ -254,7 +282,17 @@ execute_run() {
 
     # Outcome verification (wrapped to prevent abort before ledger write)
     local outcome="ERROR" tests_total=0 tests_passed=0 tests_failed=0
-    if [[ $exit_code -ne 0 && ! -f "$result_dir/transcript.jsonl" ]]; then
+    if [[ $timed_out -eq 1 ]]; then
+        # Timeout overrides all other outcomes -- the agent did not finish
+        outcome="TIMEOUT"
+        # Still attempt verification to capture partial test results
+        if source "$SCRIPT_DIR/lib/verify.sh" && \
+           verify_outcome "$workdir" "$EXP_TEST_CMD" "$result_dir/test_output.txt" 2>"$result_dir/verify_stderr.log"; then
+            tests_total="$VERIFY_TOTAL"
+            tests_passed="$VERIFY_PASSED"
+            tests_failed="$VERIFY_FAILED"
+        fi
+    elif [[ $exit_code -ne 0 && ! -f "$result_dir/transcript.jsonl" ]]; then
         outcome="ERROR"
     else
         if source "$SCRIPT_DIR/lib/verify.sh" && \
@@ -302,7 +340,7 @@ execute_run() {
 # Main run command
 cmd_run() {
     local experiment="" condition="" runs=$DEFAULT_RUNS model=$DEFAULT_MODEL
-    local treatment="" agent="" dry_run=0
+    local treatment="" agent="" timeout_override="" dry_run=0
 
     # Parse first positional arg as experiment name
     if [[ $# -gt 0 && ! "$1" =~ ^-- ]]; then
@@ -317,6 +355,7 @@ cmd_run() {
             --agent)       agent="$2"; shift 2 ;;
             --runs)        runs="$2"; shift 2 ;;
             --model)       model="$2"; shift 2 ;;
+            --timeout)     timeout_override="$2"; shift 2 ;;
             --dry-run)     dry_run=1; shift ;;
             *)             echo "Unknown option: $1" >&2; return 1 ;;
         esac
@@ -338,9 +377,10 @@ cmd_run() {
 
     load_experiment "$experiment"
 
-    # Override treatment/agent from CLI if specified
+    # Override treatment/agent/timeout from CLI if specified
     treatment="${treatment:-$EXP_TREATMENT}"
     agent="${agent:-$EXP_AGENT}"
+    EXP_MAX_WALL_CLOCK="${timeout_override:-$EXP_MAX_WALL_CLOCK}"
 
     if [[ $dry_run -eq 1 ]]; then
         echo "=== Dry Run ==="
@@ -351,6 +391,7 @@ cmd_run() {
         echo "  Treatment: $treatment"
         echo "  Agent: $agent"
         echo "  Model: $model"
+        echo "  Timeout: ${EXP_MAX_WALL_CLOCK}s"
         return 0
     fi
 
@@ -362,7 +403,7 @@ cmd_run() {
     trap cleanup_run EXIT INT TERM
 
     echo "=== intent-bench: $experiment ($condition, $treatment, $runs runs) ==="
-    echo "Agent: $agent | Model: $model"
+    echo "Agent: $agent | Model: $model | Timeout: ${EXP_MAX_WALL_CLOCK}s"
     echo ""
 
     for i in $(seq 1 "$runs"); do
