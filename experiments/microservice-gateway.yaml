@@ -1,0 +1,22 @@
+name: microservice-gateway
+description: >
+  Complex greenfield experiment: build an API gateway with service
+  registry, dynamic routing, auth middleware, rate limiting, circuit
+  breakers, request transformation, response caching, structured
+  logging, health checks, and config hot-reload. 32 requirements
+  with dependency depth 13 across infrastructure/platform concerns.
+  Tests whether structured intent helps agents manage distributed
+  systems patterns with deep middleware chains.
+repo: "none"
+treatment: rtmx
+agent: claude-code
+max_budget_usd: "10.00"
+test_command: |
+  if [ -f Makefile ] && grep -q '^test:' Makefile; then make test
+  elif [ -f package.json ]; then npm test
+  elif [ -f go.mod ]; then go test ./...
+  elif [ -f requirements.txt ] || [ -f pyproject.toml ]; then python3 -m pytest tests/
+  elif [ -f Cargo.toml ]; then cargo test
+  else echo "No test framework detected" && exit 1
+  fi
+setup_command: ""

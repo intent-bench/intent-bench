@@ -39,6 +39,12 @@ if [[ -n "${BENCH_TEST_CMD:-}" ]]; then
     test_cmd_args=(--test-cmd "$BENCH_TEST_CMD" --auto-test)
 fi
 
+# If treatment placed a REQUIREMENTS.md, add it as read-only context
+read_args=()
+if [[ -f "$workdir/REQUIREMENTS.md" ]]; then
+    read_args=(--read "$workdir/REQUIREMENTS.md")
+fi
+
 # Chat history captures the full conversation for transcript parsing.
 # LLM history captures raw API calls for token accounting.
 chat_history="$result_dir/chat_history.md"
@@ -54,6 +60,7 @@ aider \
     --chat-history-file "$chat_history" \
     --llm-history-file "$llm_history" \
     "${test_cmd_args[@]}" \
+    "${read_args[@]}" \
     2>"$result_dir/stderr.log" || true
 
 # Convert aider's LLM history to our transcript format.
