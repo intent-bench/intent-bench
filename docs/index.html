@@ -596,9 +596,12 @@
         'hyperfine':     { tier: 'Advanced', reqs: 5,  depth: 3 },
         'csvkit':        { tier: 'Advanced', reqs: 4,  depth: 2 },
         'go-yaml':       { tier: 'Advanced', reqs: 4,  depth: 2 },
-        'structlog':     { tier: 'Advanced', reqs: 4,  depth: 3 }
+        'structlog':     { tier: 'Advanced', reqs: 4,  depth: 3 },
+        'e-commerce':           { tier: 'Enterprise', reqs: 25, depth: 11 },
+        'microservice-gateway': { tier: 'Enterprise', reqs: 29, depth: 13 },
+        'saas-platform':        { tier: 'Enterprise', reqs: 41, depth: 16 }
     };
-    var TIER_ORDER = ['Baseline', 'Standard', 'Advanced'];
+    var TIER_ORDER = ['Baseline', 'Standard', 'Advanced', 'Enterprise'];
 
     function fmt(n) {
         if (n === null || n === undefined || isNaN(n)) return '\u2014';
