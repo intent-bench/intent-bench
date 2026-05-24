@@ -1,7 +1,7 @@
 {
   "meta": {
-    "input_hash": "db2db6daac9fa05deb2fedde5a7c4130883f77695e1c13ea48db30e95707e5cc",
-    "generated_at": "2026-05-20T02:33:15.191834+00:00",
+    "input_hash": "0870d416031e029756496e1713dbbc8b59d716cdac70e0ea3d684ffd37342c8b",
+    "generated_at": "2026-05-24T00:27:28.919418+00:00",
     "ledger": "results/summary.csv",
     "score_versions": [
       1
@@ -976,6 +976,290 @@
         "treatment_cv": 0.228,
         "variance_reduction": -0.004
       }
+    },
+    {
+      "experiment": "e-commerce",
+      "runs": {
+        "control": 5,
+        "treatment": 5
+      },
+      "completion_rate": {
+        "control": 0.2,
+        "treatment": 0.2
+      },
+      "total_tokens": {
+        "control": {
+          "mean": 2782587.0,
+          "median": 2782587.0,
+          "std": 0,
+          "n": 1
+        },
+        "treatment": {
+          "mean": 2677830.0,
+          "median": 2677830.0,
+          "std": 0,
+          "n": 1
+        }
+      },
+      "turns": {
+        "control": {
+          "mean": 53.0,
+          "median": 53.0,
+          "std": 0,
+          "n": 1
+        },
+        "treatment": {
+          "mean": 70.0,
+          "median": 70.0,
+          "std": 0,
+          "n": 1
+        }
+      },
+      "backtracks": {
+        "control": {
+          "mean": 3.0,
+          "median": 3.0,
+          "std": 0,
+          "n": 1
+        },
+        "treatment": {
+          "mean": 0.0,
+          "median": 0.0,
+          "std": 0,
+          "n": 1
+        }
+      },
+      "treatment_breakdown": {
+        "tool_tokens": {
+          "mean": 51.0,
+          "median": 51.0,
+          "std": 0,
+          "n": 1
+        },
+        "planning_tokens": {
+          "mean": 685.0,
+          "median": 685.0,
+          "std": 0,
+          "n": 1
+        },
+        "execution_tokens": {
+          "mean": 2677145.0,
+          "median": 2677145.0,
+          "std": 0,
+          "n": 1
+        }
+      },
+      "token_efficiency": {
+        "ratio": 1.039,
+        "ci_lower": 1.039,
+        "ci_upper": 1.039
+      },
+      "mann_whitney": {
+        "u_statistic": 1.0,
+        "p_value": 1.0,
+        "significant": false
+      },
+      "completion_significance": {
+        "fisher_p": 1.0,
+        "significant": false
+      },
+      "backtrack_rate_control": 0.057,
+      "backtrack_rate_treatment": 0.0
+    },
+    {
+      "experiment": "microservice-gateway",
+      "runs": {
+        "control": 4,
+        "treatment": 5
+      },
+      "completion_rate": {
+        "control": 0.25,
+        "treatment": 1.0
+      },
+      "total_tokens": {
+        "control": {
+          "mean": 2295997.0,
+          "median": 2295997.0,
+          "std": 0,
+          "n": 1
+        },
+        "treatment": {
+          "mean": 4295924.8,
+          "median": 3903124.0,
+          "std": 1258828.2,
+          "n": 5
+        }
+      },
+      "turns": {
+        "control": {
+          "mean": 42.0,
+          "median": 42.0,
+          "std": 0,
+          "n": 1
+        },
+        "treatment": {
+          "mean": 81.0,
+          "median": 78.0,
+          "std": 19.4,
+          "n": 5
+        }
+      },
+      "backtracks": {
+        "control": {
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0,
+          "n": 1
+        },
+        "treatment": {
+          "mean": 0.2,
+          "median": 0.0,
+          "std": 0.4,
+          "n": 5
+        }
+      },
+      "treatment_breakdown": {
+        "tool_tokens": {
+          "mean": 54.4,
+          "median": 29.0,
+          "std": 60.1,
+          "n": 5
+        },
+        "planning_tokens": {
+          "mean": 352.6,
+          "median": 331.0,
+          "std": 162.4,
+          "n": 5
+        },
+        "execution_tokens": {
+          "mean": 4295572.2,
+          "median": 3902905.0,
+          "std": 1258781.2,
+          "n": 5
+        }
+      },
+      "token_efficiency": {
+        "ratio": 0.534,
+        "ci_lower": 0.436,
+        "ci_upper": 0.691
+      },
+      "mann_whitney": {
+        "u_statistic": 0.0,
+        "p_value": 0.3333,
+        "significant": false
+      },
+      "completion_significance": {
+        "fisher_p": 0.0476,
+        "significant": true
+      },
+      "backtrack_rate_control": 0.024,
+      "backtrack_rate_treatment": 0.002,
+      "entropy_correlation": {
+        "spearman_r": 0.257,
+        "p_value": 0.6228,
+        "n": 6
+      },
+      "warnings": [
+        "Insufficient runs for control: 4 < 5"
+      ]
+    },
+    {
+      "experiment": "saas-platform",
+      "runs": {
+        "control": 4,
+        "treatment": 4
+      },
+      "completion_rate": {
+        "control": 0.25,
+        "treatment": 0.75
+      },
+      "total_tokens": {
+        "control": {
+          "mean": 1659313.0,
+          "median": 1659313.0,
+          "std": 0,
+          "n": 1
+        },
+        "treatment": {
+          "mean": 3223254.3,
+          "median": 3362325.0,
+          "std": 529548.9,
+          "n": 3
+        }
+      },
+      "turns": {
+        "control": {
+          "mean": 43.0,
+          "median": 43.0,
+          "std": 0,
+          "n": 1
+        },
+        "treatment": {
+          "mean": 63.0,
+          "median": 60.0,
+          "std": 6.1,
+          "n": 3
+        }
+      },
+      "backtracks": {
+        "control": {
+          "mean": 0.0,
+          "median": 0.0,
+          "std": 0,
+          "n": 1
+        },
+        "treatment": {
+          "mean": 0.0,
+          "median": 0.0,
+          "std": 0.0,
+          "n": 3
+        }
+      },
+      "treatment_breakdown": {
+        "tool_tokens": {
+          "mean": 14.7,
+          "median": 11.0,
+          "std": 6.4,
+          "n": 3
+        },
+        "planning_tokens": {
+          "mean": 203.0,
+          "median": 200.0,
+          "std": 87.5,
+          "n": 3
+        },
+        "execution_tokens": {
+          "mean": 3223051.3,
+          "median": 3362208.0,
+          "std": 529521.1,
+          "n": 3
+        }
+      },
+      "token_efficiency": {
+        "ratio": 0.515,
+        "ci_lower": 0.452,
+        "ci_upper": 0.629
+      },
+      "mann_whitney": {
+        "u_statistic": 0.0,
+        "p_value": 0.5,
+        "significant": false
+      },
+      "completion_significance": {
+        "fisher_p": 0.4857,
+        "significant": false
+      },
+      "backtrack_rate_control": 0.0,
+      "backtrack_rate_treatment": 0.0,
+      "entropy_correlation": {
+        "spearman_r": -0.2,
+        "p_value": 0.8,
+        "n": 4
+      },
+      "warnings": [
+        "Insufficient runs for control: 4 < 5",
+        "Insufficient runs for treatment: 4 < 5"
+      ]
     }
   ]
 }
